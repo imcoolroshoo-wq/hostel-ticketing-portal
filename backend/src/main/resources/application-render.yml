@@ -35,6 +35,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+    generate-ddl: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -45,8 +46,7 @@ spring:
         jdbc:
           time_zone: UTC
         # Additional settings for production stability
-        connection:
-          provider_disables_autocommit: true
+        # Removed provider_disables_autocommit to avoid conflict with HikariCP
         temp:
           use_jdbc_metadata_defaults: false
     defer-datasource-initialization: true

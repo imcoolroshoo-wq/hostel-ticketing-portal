@@ -105,6 +105,7 @@ public class DatabaseConfig {
         dataSource.setKeepaliveTime(30000);
         dataSource.setLeakDetectionThreshold(60000);
         dataSource.setConnectionTestQuery("SELECT 1");
+        dataSource.setAutoCommit(true); // Ensure autoCommit is properly set
         
         logger.info("Database connection configured successfully");
         return dataSource;
