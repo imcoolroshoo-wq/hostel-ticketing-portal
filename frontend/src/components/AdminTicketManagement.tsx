@@ -53,6 +53,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_ENDPOINTS } from '../config/api';
 import TicketAssignmentDialog from './TicketAssignmentDialog';
 import TicketStatusDialog from './TicketStatusDialog';
 
@@ -166,7 +167,7 @@ const AdminTicketManagement: React.FC = () => {
 
   const fetchStaff = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/admin/users/staff');
+      const response = await axios.get(API_ENDPOINTS.ADMIN_STAFF);
       setStaff(response.data || []);
     } catch (err) {
       console.error('Error fetching staff:', err);

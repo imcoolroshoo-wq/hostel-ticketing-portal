@@ -31,6 +31,7 @@ import {
   Home
 } from '@mui/icons-material';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 interface Staff {
   id: string;
@@ -88,7 +89,7 @@ const TicketAssignmentDialog: React.FC<TicketAssignmentDialogProps> = ({
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:8080/api/admin/users/staff');
+      const response = await axios.get(API_ENDPOINTS.ADMIN_STAFF);
       setStaff(response.data);
     } catch (error) {
       console.error('Error fetching staff:', error);
