@@ -3,7 +3,8 @@
 const getApiBaseUrl = (): string => {
   // In production, use environment variable (Render deployment)
   if (process.env.NODE_ENV === 'production') {
-    return process.env.REACT_APP_API_URL || window.location.origin + '/api';
+    // Prioritize environment variable, fallback to known backend URL
+    return process.env.REACT_APP_API_URL || 'https://hostel-ticketing-portal.onrender.com/api';
   }
   
   // In development, use localhost
