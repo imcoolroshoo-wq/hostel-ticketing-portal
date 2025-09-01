@@ -43,16 +43,16 @@ public class DatabaseConfig {
         logger.info("DatabaseConfig: Creating DataSource bean");
         logger.info("DatabaseConfig: DATABASE_URL value: '{}'", databaseUrl);
         
-        if (databaseUrl != null && !databaseUrl.isEmpty() && !databaseUrl.isBlank()) {
+                if (databaseUrl != null && !databaseUrl.isEmpty() && !databaseUrl.isBlank()) {
             logger.info("DatabaseConfig: Using DATABASE_URL configuration");
             logger.info("Original DATABASE_URL found: {}", maskPassword(databaseUrl));
-            
+
             // Convert postgresql:// to jdbc:postgresql:// if needed
             String jdbcUrl = convertToJdbcUrl(databaseUrl);
-            logger.info("Converted JDBC URL: {}", maskPassword(jdbcUrl));
-            
+            logger.info("Converted JDBC URL: {}", jdbcUrl);
+
             dataSource.setJdbcUrl(jdbcUrl);
-            
+
             // Extract credentials from URL if present
             try {
                 DatabaseCredentials credentials = extractCredentialsFromUrl(databaseUrl);
@@ -67,12 +67,30 @@ public class DatabaseConfig {
                 logger.error("Failed to extract credentials from DATABASE_URL: {}", e.getMessage(), e);
             }
         } else {
-            logger.warn("DatabaseConfig: DATABASE_URL is empty or null, using fallback configuration");
-            // Fallback configuration for local development
-            dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/hostel_ticketing");
-            dataSource.setUsername("postgres");
-            dataSource.setPassword("password");
-            logger.info("Using fallback database configuration: localhost:5432");
+            // EMERGENCY: Use environment variables for Render if DATABASE_URL is missing
+            String host = System.getenv("POSTGRES_HOST");
+            String port = System.getenv("POSTGRES_PORT");
+            String database = System.getenv("POSTGRES_DATABASE");
+            String username = System.getenv("POSTGRES_USER");
+            String password = System.getenv("POSTGRES_PASSWORD");
+            
+            if (host != null && database != null && username != null && password != null) {
+                String emergencyUrl = String.format("jdbc:postgresql://%s:%s/%s", 
+                    host, port != null ? port : "5432", database);
+                logger.warn("EMERGENCY: Using individual PostgreSQL environment variables");
+                logger.info("Emergency database URL: {}", emergencyUrl);
+                dataSource.setJdbcUrl(emergencyUrl);
+                dataSource.setUsername(username);
+                dataSource.setPassword(password);
+            } else {
+                logger.error("CRITICAL: No DATABASE_URL and no individual PostgreSQL env vars found!");
+                logger.warn("DatabaseConfig: DATABASE_URL is empty or null, using fallback configuration");
+                // Fallback configuration - this will fail in production but shows the issue
+                dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/hostel_ticketing");
+                dataSource.setUsername("postgres");
+                dataSource.setPassword("password");
+                logger.error("Using localhost fallback - THIS WILL FAIL IN PRODUCTION!");
+            }
         }
         
         // Configure HikariCP settings
