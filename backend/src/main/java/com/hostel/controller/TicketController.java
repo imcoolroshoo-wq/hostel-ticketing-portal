@@ -69,13 +69,49 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
-    // Get ticket by ID
+    // Get ticket by ID - Admin can view any ticket, Staff can view assigned tickets, Students can view their own tickets
     @GetMapping("/{id}")
-    public ResponseEntity<TicketDTO> getTicketById(@PathVariable UUID id) {
-        return ticketService.getTicketById(id)
-                .map(DTOMapper::toTicketDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getTicketById(@PathVariable UUID id, @RequestParam(required = false) UUID userId) {
+        try {
+            Optional<Ticket> ticketOpt = ticketService.getTicketById(id);
+            if (!ticketOpt.isPresent()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.notFound().body(error);
+            }
+            
+            Ticket ticket = ticketOpt.get();
+            
+            // If userId is provided, check permissions
+            if (userId != null) {
+                User user = userService.getUserByIdDirect(userId);
+                if (user != null) {
+                    // Check permissions based on role
+                    if (user.getRole() == UserRole.STUDENT) {
+                        // Students can only view their own tickets
+                        if (!ticket.getCreatedBy().getId().equals(userId)) {
+                            Map<String, String> error = new HashMap<>();
+                            error.put("message", "Students can only view their own tickets");
+                            return ResponseEntity.status(403).body(error);
+                        }
+                    } else if (user.getRole() == UserRole.STAFF) {
+                        // Staff can view tickets assigned to them or unassigned tickets in their category
+                        if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().getId().equals(userId)) {
+                            Map<String, String> error = new HashMap<>();
+                            error.put("message", "Staff can only view tickets assigned to them");
+                            return ResponseEntity.status(403).body(error);
+                        }
+                    }
+                    // Admins can view any ticket - no additional check needed
+                }
+            }
+            
+            return ResponseEntity.ok(DTOMapper.toTicketDTO(ticket));
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     // Create new ticket
@@ -170,17 +206,51 @@ public class TicketController {
         }
     }
 
-    // Update ticket
+    // Update ticket - Admin can update any ticket, Students can update their own tickets
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Ticket> updateTicket(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STUDENT')")
+    public ResponseEntity<?> updateTicket(
             @PathVariable UUID id,
-            @RequestBody Ticket ticketDetails) {
+            @RequestBody Ticket ticketDetails,
+            @RequestParam UUID updatedBy) {
         try {
+            // Get the current ticket
+            Ticket existingTicket = ticketService.getTicketByIdDirect(id);
+            if (existingTicket == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.notFound().body(error);
+            }
+            
+            // Get the user making the update
+            User updater = userService.getUserByIdDirect(updatedBy);
+            if (updater == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "User not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Check permissions
+            if (updater.getRole() == UserRole.STUDENT) {
+                // Students can only edit their own tickets and only if not assigned
+                if (!existingTicket.getCreatedBy().getId().equals(updatedBy)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Students can only edit their own tickets");
+                    return ResponseEntity.status(403).body(error);
+                }
+                if (existingTicket.getAssignedTo() != null) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Cannot edit ticket that has been assigned to staff");
+                    return ResponseEntity.status(403).body(error);
+                }
+            }
+            
             Ticket updatedTicket = ticketService.updateTicket(id, ticketDetails);
-            return ResponseEntity.ok(updatedTicket);
+            return ResponseEntity.ok(DTOMapper.toTicketDTO(updatedTicket));
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 

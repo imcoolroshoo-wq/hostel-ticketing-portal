@@ -59,6 +59,10 @@ public class TicketService {
     public Optional<Ticket> getTicketById(UUID id) {
         return ticketRepository.findById(id);
     }
+    
+    public Ticket getTicketByIdDirect(UUID id) {
+        return ticketRepository.findById(id).orElse(null);
+    }
 
     public Ticket createTicket(Ticket ticket, UUID creatorId) {
         User creator = userRepository.findById(creatorId)
