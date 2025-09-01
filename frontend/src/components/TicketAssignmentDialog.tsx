@@ -105,7 +105,7 @@ const TicketAssignmentDialog: React.FC<TicketAssignmentDialogProps> = ({
     setSubmitting(true);
     setError(null);
     try {
-      await axios.post(`http://localhost:8080/api/tickets/${ticket.id}/assign/${currentUserId}`);
+      await axios.post(`${API_ENDPOINTS.TICKETS}/${ticket.id}/assign/${currentUserId}?requestedBy=${currentUserId}`);
       onAssignmentComplete();
       onClose();
     } catch (error) {
@@ -122,7 +122,7 @@ const TicketAssignmentDialog: React.FC<TicketAssignmentDialogProps> = ({
     setSubmitting(true);
     setError(null);
     try {
-      await axios.post(`http://localhost:8080/api/tickets/${ticket.id}/assign/${selectedStaffId}`);
+      await axios.post(`${API_ENDPOINTS.TICKETS}/${ticket.id}/assign/${selectedStaffId}?requestedBy=${currentUserId}`);
       onAssignmentComplete();
       onClose();
     } catch (error) {
