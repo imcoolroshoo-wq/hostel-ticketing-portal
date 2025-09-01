@@ -14,7 +14,7 @@ public class HostelNameConverter implements AttributeConverter<HostelName, Strin
         if (hostelName == null) {
             return null;
         }
-        return hostelName.getDisplayName();
+        return hostelName.name(); // Use enum name for consistency with existing data
     }
 
     @Override

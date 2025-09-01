@@ -237,7 +237,8 @@ public class TicketController {
             String hostelBlockParam = (String) ticketData.get("hostelBlock");
             if (hostelBlockParam == null || hostelBlockParam.trim().isEmpty()) {
                 if (creator.getHostelBlock() != null) {
-                    newTicket.setHostelBlock(creator.getHostelBlock().name());
+                    // Use the display name since that's what the Ticket entity expects as String
+                    newTicket.setHostelBlock(creator.getHostelBlock().getDisplayName());
                 } else {
                     Map<String, Object> errorResponse = new HashMap<>();
                     errorResponse.put("error", "Hostel block required");

@@ -84,7 +84,8 @@ public class TicketService {
         // Auto-assign hostel block from user if not provided
         if (ticket.getHostelBlock() == null || ticket.getHostelBlock().trim().isEmpty()) {
             if (creator.getHostelBlock() != null) {
-                ticket.setHostelBlock(creator.getHostelBlock().name());
+                // Use the display name since that's what the Ticket entity expects as String
+                ticket.setHostelBlock(creator.getHostelBlock().getDisplayName());
             } else {
                 throw new RuntimeException("Hostel block is required. User profile doesn't have hostel block information.");
             }
