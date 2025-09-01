@@ -11,7 +11,7 @@ VALUES (
     gen_random_uuid(),
     'demo_admin',
     'admin@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$X5wFBtLrL/kCcnhWnorNxu6qdQq0waxlVYhKmrHlLx7VbJKtJi8iK',
     'Demo',
     'Admin',
     'ADMIN',
@@ -27,7 +27,7 @@ VALUES (
     gen_random_uuid(),
     'demo_student',
     'student001@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$Zj5FoQqgznN3PV0HHr7o5eKkdhYFJSLQ.eNF7vJZO4OhwJINEW7uK',
     'Demo',
     'Student',
     'STUDENT',
@@ -46,7 +46,7 @@ VALUES (
     gen_random_uuid(),
     'demo_electrical',
     'electrical@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$4KTnAXIjZjEyJQkJ2LmGv.Ke/t1ueJMN1ZJnWnhAZ8MJI5qEXwvEK',
     'Demo',
     'Electrician',
     'STAFF',
@@ -59,13 +59,13 @@ VALUES (
 
 -- Insert additional comprehensive test users for full functionality testing
 
--- Additional admin user
+-- Additional admin user (password: admin123)
 INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, phone, is_active, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
     'admin_test',
     'admin.test@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$X5wFBtLrL/kCcnhWnorNxu6qdQq0waxlVYhKmrHlLx7VbJKtJi8iK',
     'Test',
     'Administrator',
     'ADMIN',
@@ -75,13 +75,13 @@ VALUES (
     CURRENT_TIMESTAMP
 ) ON CONFLICT (email) DO NOTHING;
 
--- Additional student users for testing
+-- Additional student users for testing (password: student123)
 INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, student_id, room_number, hostel_block, phone, is_active, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
     'student_test1',
     'student002@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$Zj5FoQqgznN3PV0HHr7o5eKkdhYFJSLQ.eNF7vJZO4OhwJINEW7uK',
     'Test',
     'Student One',
     'STUDENT',
@@ -99,7 +99,7 @@ VALUES (
     gen_random_uuid(),
     'student_test2', 
     'student003@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$Zj5FoQqgznN3PV0HHr7o5eKkdhYFJSLQ.eNF7vJZO4OhwJINEW7uK',
     'Test',
     'Student Two',
     'STUDENT',
@@ -112,13 +112,13 @@ VALUES (
     CURRENT_TIMESTAMP
 ) ON CONFLICT (email) DO NOTHING;
 
--- Additional staff users for testing different verticals
+-- Additional staff users for testing different verticals (password: staff123)
 INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, staff_vertical, phone, is_active, created_at, updated_at)
 VALUES (
     gen_random_uuid(),
     'staff_plumbing',
     'plumbing@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$4KTnAXIjZjEyJQkJ2LmGv.Ke/t1ueJMN1ZJnWnhAZ8MJI5qEXwvEK',
     'Demo',
     'Plumber',
     'STAFF',
@@ -134,7 +134,7 @@ VALUES (
     gen_random_uuid(),
     'staff_hvac',
     'hvac@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$4KTnAXIjZjEyJQkJ2LmGv.Ke/t1ueJMN1ZJnWnhAZ8MJI5qEXwvEK',
     'Demo',
     'HVAC Tech',
     'STAFF',
@@ -150,7 +150,7 @@ VALUES (
     gen_random_uuid(),
     'staff_general',
     'general@iimtrichy.ac.in',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2a$10$4KTnAXIjZjEyJQkJ2LmGv.Ke/t1ueJMN1ZJnWnhAZ8MJI5qEXwvEK',
     'Demo',
     'General Staff',
     'STAFF',

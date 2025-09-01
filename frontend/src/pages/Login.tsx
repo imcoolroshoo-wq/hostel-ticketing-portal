@@ -88,9 +88,9 @@ const Login: React.FC = () => {
     setError('');
 
     const demoCredentials = {
-      STUDENT: { email: 'student001@iimtrichy.ac.in', password: 'student123' },
-      STAFF: { email: 'electrical@iimtrichy.ac.in', password: 'staff123' },
-      ADMIN: { email: 'admin@iimtrichy.ac.in', password: 'admin123' },
+      STUDENT: { email: 'student001@iimtrichy.ac.in', password: 'password' },
+      STAFF: { email: 'electrical@iimtrichy.ac.in', password: 'password' },
+      ADMIN: { email: 'admin@iimtrichy.ac.in', password: 'password' },
     };
 
     try {

@@ -25,7 +25,7 @@ const getApiBaseUrl = (): string => {
     console.log('🌐 Using local backend URL:', localUrl);
     return localUrl;
   } else {
-    // Remote deployment - use Render backend
+    // Remote deployment - use Render backend (FIXED)
     const remoteUrl = 'https://hostel-ticketing-portal.onrender.com/api';
     console.log('🌐 Using remote backend URL:', remoteUrl);
     return remoteUrl;
