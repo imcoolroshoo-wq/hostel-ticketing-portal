@@ -110,7 +110,7 @@ public class TicketController {
         } catch (Exception e) {
             System.err.println("Error fetching tickets: " + e.getMessage());
             e.printStackTrace();
-            Map<String, String> error = new HashMap<>();
+            Map<String, Object> error = new HashMap<>();
             error.put("message", "Error fetching tickets: " + e.getMessage());
             return ResponseEntity.status(500).body(error);
         }
