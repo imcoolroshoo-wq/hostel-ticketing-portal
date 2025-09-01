@@ -184,11 +184,13 @@ const StaffDashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'OPEN': return 'primary';
-      case 'IN_PROGRESS': return 'info';
-      case 'PENDING': return 'warning';
+      case 'ASSIGNED': return 'info';
+      case 'IN_PROGRESS': return 'warning';
+      case 'ON_HOLD': return 'secondary';
       case 'RESOLVED': return 'success';
       case 'CLOSED': return 'default';
       case 'CANCELLED': return 'error';
+      case 'REOPENED': return 'primary';
       default: return 'default';
     }
   };
@@ -616,11 +618,13 @@ const StaffDashboard: React.FC = () => {
                 label="Status"
               >
                 <MenuItem value="OPEN">Open</MenuItem>
+                <MenuItem value="ASSIGNED">Assigned</MenuItem>
                 <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
-                <MenuItem value="PENDING">Pending</MenuItem>
+                <MenuItem value="ON_HOLD">On Hold</MenuItem>
                 <MenuItem value="RESOLVED">Resolved</MenuItem>
                 <MenuItem value="CLOSED">Closed</MenuItem>
                 <MenuItem value="CANCELLED">Cancelled</MenuItem>
+                <MenuItem value="REOPENED">Reopened</MenuItem>
               </Select>
             </FormControl>
           )}
