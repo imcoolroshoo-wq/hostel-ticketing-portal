@@ -145,15 +145,16 @@ const StaffDashboard: React.FC = () => {
     }
   }, [user?.id]);
 
-  // Filter tickets based on current tab - Staff can only see assigned tickets
+  // Filter tickets based on current tab - Staff can see assigned and unassigned tickets
   const getFilteredTickets = () => {
-    // All tickets are already filtered to show only assigned tickets
     switch (tabValue) {
       case 0: // All assigned tickets
         return tickets;
       case 1: // High Priority assigned tickets
         return tickets.filter(t => t.priority === 'HIGH' || t.priority === 'URGENT');
-      case 2: // Recent assigned tickets
+      case 2: // Unassigned tickets that staff can self-assign
+        return unassignedTickets;
+      case 3: // Recent assigned tickets
         return tickets
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 20);
@@ -233,22 +234,33 @@ const StaffDashboard: React.FC = () => {
   };
 
   const handleActionSubmit = async () => {
-    if (!selectedTicket) return;
+    if (!selectedTicket || !user) return;
 
     try {
-      // This would typically call different endpoints based on action type
-      // For now, we'll simulate the action
-      console.log('Action submitted:', {
-        ticketId: selectedTicket.id,
-        actionType,
-        actionData
-      });
+      if (actionType === 'assign') {
+        // Self-assign unassigned ticket
+        await axios.post(`${API_ENDPOINTS.TICKETS}/${selectedTicket.id}/assign/${user.id}?requestedBy=${user.id}`);
+        console.log('Ticket assigned to self successfully');
+      } else if (actionType === 'status') {
+        // Update ticket status
+        await axios.put(`${API_ENDPOINTS.TICKETS}/${selectedTicket.id}/status?status=${actionData.status}&updatedBy=${user.id}`);
+        console.log('Ticket status updated successfully');
+      } else if (actionType === 'comment') {
+        // Add comment (this would require a comment endpoint)
+        console.log('Comment functionality not yet implemented');
+      }
 
       setActionDialogOpen(false);
       setSelectedTicket(null);
       
-      // Refresh tickets
-      window.location.reload();
+      // Refresh tickets by calling the fetch function
+      if (user?.id) {
+        const assignedResponse = await axios.get(`${API_ENDPOINTS.TICKETS}/assigned/${user.id}`);
+        setTickets(assignedResponse.data || []);
+        
+        const unassignedResponse = await axios.get(`${API_ENDPOINTS.TICKETS}/unassigned`);
+        setUnassignedTickets(unassignedResponse.data || []);
+      }
     } catch (error) {
       console.error('Error performing action:', error);
     }
@@ -423,6 +435,13 @@ const StaffDashboard: React.FC = () => {
                 </Badge>
               } 
             />
+            <Tab 
+              label={
+                <Badge badgeContent={stats.unassigned} color="warning">
+                  Unassigned Tickets
+                </Badge>
+              } 
+            />
             <Tab label="Recent Work" />
           </Tabs>
         </Box>
@@ -530,22 +549,31 @@ const StaffDashboard: React.FC = () => {
                               <Visibility fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Assign">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleTicketAction(ticket, 'assign')}
-                            >
-                              <AssignmentInd fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Update Status">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleTicketAction(ticket, 'status')}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          
+                          {/* Show different actions based on assignment status */}
+                          {!ticket.assignedTo ? (
+                            // For unassigned tickets, show "Assign to Me"
+                            <Tooltip title="Assign to Me">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleTicketAction(ticket, 'assign')}
+                                color="primary"
+                              >
+                                <AssignmentInd fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : ticket.assignedTo.id === user?.id ? (
+                            // For tickets assigned to this staff, show "Update Status"
+                            <Tooltip title="Update Status">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleTicketAction(ticket, 'status')}
+                                color="secondary"
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -598,18 +626,17 @@ const StaffDashboard: React.FC = () => {
           )}
 
           {actionType === 'assign' && (
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Assign To</InputLabel>
-              <Select
-                value={actionData.assigneeId}
-                onChange={(e) => setActionData(prev => ({ ...prev, assigneeId: e.target.value }))}
-                label="Assign To"
-              >
-                <MenuItem value="">Unassigned</MenuItem>
-                <MenuItem value={user?.id || ''}>{user?.firstName} {user?.lastName} (Me)</MenuItem>
-                {/* Add other staff members here */}
-              </Select>
-            </FormControl>
+            <Box>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Are you sure you want to assign this ticket to yourself?
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                <AssignmentInd color="primary" />
+                <Typography variant="body2">
+                  <strong>{user?.firstName} {user?.lastName}</strong> ({user?.role})
+                </Typography>
+              </Box>
+            </Box>
           )}
 
           <TextField
