@@ -33,8 +33,8 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
     generate-ddl: true
     properties:
       hibernate:
@@ -50,12 +50,12 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
     defer-datasource-initialization: true
-    open-in-view: false
+    open-in-view: true
   
-  # SQL initialization
+  # SQL initialization - only run once 
   sql:
     init:
-      mode: always
+      mode: never
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
       continue-on-error: false
