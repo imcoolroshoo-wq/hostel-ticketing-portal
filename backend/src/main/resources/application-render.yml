@@ -11,9 +11,7 @@ spring:
   
   # Database Configuration - Render PostgreSQL
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://${POSTGRES_HOST:dpg-d2qgrgn5r7bs73am3nsg-a.oregon-postgres.render.com}:${POSTGRES_PORT:5432}/${POSTGRES_DATABASE:hostel_ticketing_db}}
-    username: ${POSTGRES_USER:hostel_ticketing_db_user}
-    password: ${POSTGRES_PASSWORD:FvzhUfPhtQwqu8ohUYjidQY2OU6jEhnx}
+    url: ${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
