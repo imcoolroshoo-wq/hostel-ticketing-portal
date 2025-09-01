@@ -2,7 +2,7 @@ package com.hostel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Profile;
 import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
@@ -38,9 +38,9 @@ public class TicketingPortalApplication {
      * when DATABASE_URL is set (production environment)
      */
     @Configuration
-    @ConditionalOnExpression("'${DATABASE_URL:}'.length() > 0")
+    @Profile("render")
     @org.springframework.boot.autoconfigure.EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
     public static class ProductionDataSourceConfig {
-        // This configuration class will only be active when DATABASE_URL is set
+        // This configuration class will only be active in render profile
     }
 } 
