@@ -77,8 +77,7 @@ VALUES (
 
 -- Additional student users for testing
 INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, student_id, room_number, hostel_block, phone, is_active, created_at, updated_at)
-VALUES 
-(
+VALUES (
     gen_random_uuid(),
     'student_test1',
     'student002@iimtrichy.ac.in',
@@ -93,8 +92,10 @@ VALUES
     true,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-) ON CONFLICT (email) DO NOTHING,
-(
+) ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, student_id, room_number, hostel_block, phone, is_active, created_at, updated_at)
+VALUES (
     gen_random_uuid(),
     'student_test2', 
     'student003@iimtrichy.ac.in',
@@ -113,8 +114,7 @@ VALUES
 
 -- Additional staff users for testing different verticals
 INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, staff_vertical, phone, is_active, created_at, updated_at)
-VALUES
-(
+VALUES (
     gen_random_uuid(),
     'staff_plumbing',
     'plumbing@iimtrichy.ac.in',
@@ -127,8 +127,10 @@ VALUES
     true,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-) ON CONFLICT (email) DO NOTHING,
-(
+) ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, staff_vertical, phone, is_active, created_at, updated_at)
+VALUES (
     gen_random_uuid(),
     'staff_hvac',
     'hvac@iimtrichy.ac.in',
@@ -141,8 +143,10 @@ VALUES
     true,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-) ON CONFLICT (email) DO NOTHING,
-(
+) ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO users (id, username, email, password_hash, first_name, last_name, role, staff_vertical, phone, is_active, created_at, updated_at)
+VALUES (
     gen_random_uuid(),
     'staff_general',
     'general@iimtrichy.ac.in',
