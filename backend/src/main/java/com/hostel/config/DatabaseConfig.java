@@ -4,6 +4,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -27,7 +29,11 @@ public class DatabaseConfig {
     public DataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
         
-        if (databaseUrl != null && !databaseUrl.isEmpty()) {
+        logger.info("DatabaseConfig: Creating DataSource bean");
+        logger.info("DatabaseConfig: DATABASE_URL value: '{}'", databaseUrl);
+        
+        if (databaseUrl != null && !databaseUrl.isEmpty() && !databaseUrl.isBlank()) {
+            logger.info("DatabaseConfig: Using DATABASE_URL configuration");
             logger.info("Original DATABASE_URL found: {}", maskPassword(databaseUrl));
             
             // Convert postgresql:// to jdbc:postgresql:// if needed
@@ -43,16 +49,19 @@ public class DatabaseConfig {
                     dataSource.setUsername(credentials.username);
                     dataSource.setPassword(credentials.password);
                     logger.info("Extracted credentials for user: {}", credentials.username);
+                } else {
+                    logger.warn("No credentials found in DATABASE_URL");
                 }
             } catch (Exception e) {
-                logger.warn("Failed to extract credentials from DATABASE_URL: {}", e.getMessage());
+                logger.error("Failed to extract credentials from DATABASE_URL: {}", e.getMessage(), e);
             }
         } else {
-            // Fallback configuration
+            logger.warn("DatabaseConfig: DATABASE_URL is empty or null, using fallback configuration");
+            // Fallback configuration for local development
             dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/hostel_ticketing");
             dataSource.setUsername("postgres");
             dataSource.setPassword("password");
-            logger.info("Using fallback database configuration");
+            logger.info("Using fallback database configuration: localhost:5432");
         }
         
         // Configure HikariCP settings

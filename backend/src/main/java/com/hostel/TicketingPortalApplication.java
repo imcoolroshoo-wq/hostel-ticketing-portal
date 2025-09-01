@@ -2,6 +2,7 @@ package com.hostel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -11,7 +12,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * This application provides a comprehensive ticketing system for managing
  * hostel-related issues and their resolution.
  */
-@SpringBootApplication(scanBasePackages = {"com.hostel"})
+@SpringBootApplication(
+    scanBasePackages = {"com.hostel"},
+    exclude = {DataSourceAutoConfiguration.class}
+)
 @EnableCaching
 @EnableAsync
 @EnableScheduling
