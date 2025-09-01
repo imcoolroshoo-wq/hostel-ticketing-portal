@@ -115,8 +115,9 @@ public class SLAService {
     public void checkSLABreaches() {
         LocalDateTime now = LocalDateTime.now();
         
-        // Find tickets approaching SLA breach (75% of time elapsed)
-        List<Ticket> approachingBreach = ticketRepository.findTicketsApproachingSLABreach(now);
+        // Find tickets approaching SLA breach (within 4 hours of estimated resolution)
+        LocalDateTime slaThreshold = now.plusHours(4);
+        List<Ticket> approachingBreach = ticketRepository.findTicketsApproachingSLABreach(slaThreshold);
         for (Ticket ticket : approachingBreach) {
             sendSLAWarningNotification(ticket);
         }

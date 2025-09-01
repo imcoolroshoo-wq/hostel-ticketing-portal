@@ -144,8 +144,8 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     // SLA Management queries  
     @Query("SELECT t FROM Ticket t WHERE t.status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED') " +
            "AND t.estimatedResolutionTime IS NOT NULL " +
-           "AND :now >= (t.createdAt + (t.estimatedResolutionTime - t.createdAt) * 0.75)")
-    List<Ticket> findTicketsApproachingSLABreach(@Param("now") LocalDateTime now);
+           "AND t.estimatedResolutionTime <= :slaThreshold")
+    List<Ticket> findTicketsApproachingSLABreach(@Param("slaThreshold") LocalDateTime slaThreshold);
     
     @Query("SELECT t FROM Ticket t WHERE t.status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED') " +
            "AND t.slaBreachTime IS NOT NULL " +

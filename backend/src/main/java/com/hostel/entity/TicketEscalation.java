@@ -57,12 +57,12 @@ public class TicketEscalation {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_level")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "from_level")
     private EscalationLevel fromLevel;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_level")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "to_level")
     private EscalationLevel toLevel;
     
     @ManyToOne(fetch = FetchType.LAZY)

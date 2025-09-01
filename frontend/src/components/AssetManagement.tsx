@@ -377,7 +377,7 @@ const AssetManagement: React.FC = () => {
   });
 
   // Get unique buildings for filter
-  const uniqueBuildings = [...new Set(assets.map(a => a.building))];
+  const uniqueBuildings = Array.from(new Set(assets.map(a => a.building)));
 
   if (!hasPermission('view_all_tickets') && !hasPermission('manage_users')) {
     return (
