@@ -22,6 +22,9 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     // Find tickets by user (creator)
     Page<Ticket> findByCreatedById(UUID userId, Pageable pageable);
     
+    // Find tickets by user created after a certain date (for duplicate detection)
+    List<Ticket> findByCreatedByIdAndCreatedAtAfter(UUID userId, LocalDateTime after);
+    
     // Find tickets by assignee
     Page<Ticket> findByAssignedToId(UUID assigneeId, Pageable pageable);
     
@@ -128,4 +131,38 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
            "(t.category = :category OR t.customCategory = :category)")
     List<Ticket> findByHostelBlockAndCategory(@Param("hostelBlock") String hostelBlock, 
                                              @Param("category") String category);
+    
+    // SLA Management queries  
+    @Query("SELECT t FROM Ticket t WHERE t.status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED') " +
+           "AND t.estimatedResolutionTime IS NOT NULL " +
+           "AND :now >= (t.createdAt + (t.estimatedResolutionTime - t.createdAt) * 0.75)")
+    List<Ticket> findTicketsApproachingSLABreach(@Param("now") LocalDateTime now);
+    
+    @Query("SELECT t FROM Ticket t WHERE t.status NOT IN ('RESOLVED', 'CLOSED', 'CANCELLED') " +
+           "AND t.slaBreachTime IS NOT NULL " +
+           "AND t.slaBreachTime <= :now")
+    List<Ticket> findTicketsWithSLABreach(@Param("now") LocalDateTime now);
+    
+    // Escalation queries
+    @Query("SELECT t FROM Ticket t WHERE t.priority = :priority " +
+           "AND t.status = :status " +
+           "AND t.createdAt <= :threshold")
+    List<Ticket> findTicketsForTimeBasedEscalation(
+        @Param("priority") TicketPriority priority,
+        @Param("status") TicketStatus status,
+        @Param("threshold") LocalDateTime threshold
+    );
+    
+    @Query("SELECT t FROM Ticket t WHERE t.priority = :priority " +
+           "AND t.status IN :statuses " +
+           "AND t.updatedAt <= :threshold")
+    List<Ticket> findTicketsForProgressEscalation(
+        @Param("priority") TicketPriority priority,
+        @Param("statuses") List<TicketStatus> statuses,
+        @Param("threshold") LocalDateTime threshold
+    );
+    
+    // Feedback queries
+    @Query("SELECT t FROM Ticket t WHERE t.satisfactionRating IS NOT NULL")
+    List<Ticket> findTicketsWithFeedback();
 } 

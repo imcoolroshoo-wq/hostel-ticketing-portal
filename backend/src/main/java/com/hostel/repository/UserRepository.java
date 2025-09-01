@@ -52,6 +52,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     List<User> findByRoleAndIsActiveTrue(UserRole role);
     
+    // Find supervisors by staff vertical (assuming supervisors have specific role or designation)
+    @Query("SELECT u FROM User u WHERE u.role = 'STAFF' " +
+           "AND u.staffVertical = :vertical " +
+           "AND u.isActive = true " +
+           "ORDER BY u.createdAt ASC")
+    List<User> findSupervisorsByVertical(@Param("vertical") String vertical);
+    
     @Modifying
     @Query("UPDATE User u SET u.isActive = :isActive, u.updatedAt = :updatedAt WHERE u.id = :userId")
     int updateUserStatus(@Param("userId") UUID userId, @Param("isActive") Boolean isActive, @Param("updatedAt") java.time.LocalDateTime updatedAt);

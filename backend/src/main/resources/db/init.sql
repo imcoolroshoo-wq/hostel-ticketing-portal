@@ -151,9 +151,9 @@ CREATE TABLE tickets (
     created_by UUID NOT NULL REFERENCES users(id),
     assigned_to UUID REFERENCES users(id),
     
-    -- Location information
+    -- Location information (hostel_block is mandatory)
     room_number VARCHAR(10),
-    hostel_block VARCHAR(50),
+    hostel_block VARCHAR(50) NOT NULL,
     floor_number INTEGER,
     location_details TEXT,
     

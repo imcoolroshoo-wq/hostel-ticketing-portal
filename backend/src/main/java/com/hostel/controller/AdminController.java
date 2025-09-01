@@ -322,7 +322,7 @@ public class AdminController {
             // Create new mapping
             CategoryStaffMapping mapping = new CategoryStaffMapping();
             mapping.setStaff(staff);
-            mapping.setHostelBlock(request.getHostelBlock());
+            mapping.setHostelBlockString(request.getHostelBlock());
             mapping.setCategory(request.getCategory());
             mapping.setPriorityLevel(request.getPriorityLevel() != null ? request.getPriorityLevel() : 1);
             mapping.setCapacityWeight(request.getCapacityWeight() != null ? 
@@ -353,7 +353,7 @@ public class AdminController {
             
             // Update fields
             if (request.getHostelBlock() != null) {
-                mapping.setHostelBlock(request.getHostelBlock());
+                mapping.setHostelBlockString(request.getHostelBlock());
             }
             if (request.getPriorityLevel() != null) {
                 mapping.setPriorityLevel(request.getPriorityLevel());

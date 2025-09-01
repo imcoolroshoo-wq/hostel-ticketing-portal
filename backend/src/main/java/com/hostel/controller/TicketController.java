@@ -700,6 +700,230 @@ public class TicketController {
         }
     }
 
+    // Check for duplicate tickets
+    @PostMapping("/check-duplicates")
+    public ResponseEntity<?> checkDuplicates(@RequestBody Map<String, Object> requestData) {
+        try {
+            String title = (String) requestData.get("title");
+            String description = (String) requestData.get("description");
+            UUID creatorId = UUID.fromString((String) requestData.get("creatorId"));
+            
+            // Use the same duplicate detection logic from TicketService
+            LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+            List<Ticket> recentTickets = ticketRepository.findByCreatedByIdAndCreatedAtAfter(creatorId, thirtyDaysAgo);
+            
+            List<Map<String, Object>> similarTickets = new ArrayList<>();
+            String lowerTitle = title.toLowerCase();
+            String lowerDescription = description.toLowerCase();
+            
+            for (Ticket existingTicket : recentTickets) {
+                // Skip closed tickets
+                if (existingTicket.getStatus() == TicketStatus.CLOSED) {
+                    continue;
+                }
+                
+                String existingTitle = existingTicket.getTitle().toLowerCase();
+                String existingDescription = existingTicket.getDescription().toLowerCase();
+                
+                // Simple similarity check
+                double titleSimilarity = calculateSimilarity(lowerTitle, existingTitle);
+                double descriptionSimilarity = calculateSimilarity(lowerDescription, existingDescription);
+                
+                if (titleSimilarity > 0.7 || descriptionSimilarity > 0.8) {
+                    Map<String, Object> similarTicket = new HashMap<>();
+                    similarTicket.put("id", existingTicket.getId());
+                    similarTicket.put("ticketNumber", existingTicket.getTicketNumber());
+                    similarTicket.put("title", existingTicket.getTitle());
+                    similarTicket.put("status", existingTicket.getStatus());
+                    similarTicket.put("similarity", Math.max(titleSimilarity, descriptionSimilarity));
+                    similarTickets.add(similarTicket);
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("hasDuplicates", !similarTickets.isEmpty());
+            response.put("similarTickets", similarTickets);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+    
+    // Helper method for similarity calculation
+    private double calculateSimilarity(String s1, String s2) {
+        if (s1 == null || s2 == null) return 0.0;
+        if (s1.equals(s2)) return 1.0;
+        
+        String[] words1 = s1.split("\\s+");
+        String[] words2 = s2.split("\\s+");
+        
+        Set<String> set1 = new HashSet<>();
+        Set<String> set2 = new HashSet<>();
+        
+        for (String word : words1) {
+            if (word.length() > 3) {
+                set1.add(word);
+            }
+        }
+        
+        for (String word : words2) {
+            if (word.length() > 3) {
+                set2.add(word);
+            }
+        }
+        
+        if (set1.isEmpty() && set2.isEmpty()) return 0.0;
+        
+        Set<String> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+        
+        Set<String> union = new HashSet<>(set1);
+        union.addAll(set2);
+        
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+    }
+
+    // Submit feedback for resolved ticket - Student only
+    @PostMapping("/{id}/feedback")
+    public ResponseEntity<?> submitFeedback(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> feedbackData,
+            @RequestParam UUID studentId) {
+        try {
+            // Verify student permissions
+            User student = userService.getUserByIdDirect(studentId);
+            if (student == null || student.getRole() != UserRole.STUDENT) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Only students can submit feedback");
+                return ResponseEntity.status(403).body(error);
+            }
+            
+            // Get the ticket
+            Ticket ticket = ticketService.getTicketByIdDirect(id);
+            if (ticket == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            // Verify student owns the ticket
+            if (!ticket.getCreatedBy().getId().equals(studentId)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Students can only provide feedback for their own tickets");
+                return ResponseEntity.status(403).body(error);
+            }
+            
+            // Verify ticket is resolved
+            if (ticket.getStatus() != TicketStatus.RESOLVED && ticket.getStatus() != TicketStatus.CLOSED) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Feedback can only be submitted for resolved tickets");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Extract feedback data
+            Integer rating = (Integer) feedbackData.get("rating");
+            String feedback = (String) feedbackData.get("feedback");
+            
+            // Validate rating
+            if (rating == null || rating < 1 || rating > 5) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Rating must be between 1 and 5");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Update ticket with feedback
+            ticket.setSatisfactionRating(rating);
+            ticket.setFeedback(feedback);
+            ticket.setUpdatedAt(LocalDateTime.now());
+            
+            // Auto-close ticket after feedback if it was just resolved
+            if (ticket.getStatus() == TicketStatus.RESOLVED) {
+                ticket.setStatus(TicketStatus.CLOSED);
+                ticket.setClosedAt(LocalDateTime.now());
+            }
+            
+            ticketRepository.save(ticket);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Feedback submitted successfully");
+            response.put("ticket", DTOMapper.toTicketDTO(ticket));
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // Get feedback statistics - Admin/Staff only
+    @GetMapping("/feedback/stats")
+    public ResponseEntity<?> getFeedbackStats(@RequestParam UUID userId) {
+        try {
+            User user = userService.getUserByIdDirect(userId);
+            if (user == null || user.getRole() == UserRole.STUDENT) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Access denied");
+                return ResponseEntity.status(403).body(error);
+            }
+            
+            // Calculate feedback statistics
+            List<Ticket> ticketsWithFeedback = ticketRepository.findTicketsWithFeedback();
+            
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalFeedbacks", ticketsWithFeedback.size());
+            
+            if (!ticketsWithFeedback.isEmpty()) {
+                double averageRating = ticketsWithFeedback.stream()
+                    .mapToInt(Ticket::getSatisfactionRating)
+                    .average()
+                    .orElse(0.0);
+                
+                stats.put("averageRating", Math.round(averageRating * 100.0) / 100.0);
+                
+                // Rating distribution
+                Map<Integer, Long> ratingDistribution = ticketsWithFeedback.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                        Ticket::getSatisfactionRating,
+                        java.util.stream.Collectors.counting()));
+                
+                stats.put("ratingDistribution", ratingDistribution);
+                
+                // Recent feedback
+                List<Map<String, Object>> recentFeedback = ticketsWithFeedback.stream()
+                    .sorted((t1, t2) -> t2.getUpdatedAt().compareTo(t1.getUpdatedAt()))
+                    .limit(10)
+                    .map(ticket -> {
+                        Map<String, Object> feedbackInfo = new HashMap<>();
+                        feedbackInfo.put("ticketNumber", ticket.getTicketNumber());
+                        feedbackInfo.put("title", ticket.getTitle());
+                        feedbackInfo.put("rating", ticket.getSatisfactionRating());
+                        feedbackInfo.put("feedback", ticket.getFeedback());
+                        feedbackInfo.put("submittedAt", ticket.getUpdatedAt());
+                        feedbackInfo.put("category", ticket.getCategory());
+                        return feedbackInfo;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+                
+                stats.put("recentFeedback", recentFeedback);
+            } else {
+                stats.put("averageRating", 0.0);
+                stats.put("ratingDistribution", new HashMap<>());
+                stats.put("recentFeedback", new java.util.ArrayList<>());
+            }
+            
+            return ResponseEntity.ok(stats);
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     // Handle OPTIONS requests for CORS preflight
     @RequestMapping(method = RequestMethod.OPTIONS)
     public ResponseEntity<Void> handleOptions() {

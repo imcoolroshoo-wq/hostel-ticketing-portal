@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.ArrayList;
+import java.util.*;
 
 @Service
 @Transactional
@@ -24,6 +21,9 @@ public class TicketService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private SLAService slaService;
     
     @Autowired
     private TicketAssignmentService ticketAssignmentService;
@@ -76,6 +76,17 @@ public class TicketService {
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
+        // Check for duplicate tickets
+        List<Ticket> similarTickets = findSimilarTickets(ticket.getTitle(), ticket.getDescription(), creator.getId());
+        if (!similarTickets.isEmpty()) {
+            // Return information about similar tickets for user to decide
+            StringBuilder duplicateWarning = new StringBuilder("Similar tickets found: ");
+            for (Ticket similar : similarTickets) {
+                duplicateWarning.append(similar.getTicketNumber()).append(" (").append(similar.getTitle()).append("), ");
+            }
+            throw new RuntimeException("Duplicate detected: " + duplicateWarning.toString());
+        }
+        
         // Generate ticket number if not provided
         if (ticket.getTicketNumber() == null || ticket.getTicketNumber().trim().isEmpty()) {
             ticket.setTicketNumber(generateTicketNumber());
@@ -95,6 +106,9 @@ public class TicketService {
         ticket.setStatus(TicketStatus.OPEN);
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
+        
+        // Calculate SLA times
+        slaService.calculateSLATimes(ticket);
         
         // Auto-assign based on category and priority
         if (ticket.getAssignedTo() == null) {
@@ -393,5 +407,91 @@ public class TicketService {
         ticket.getHistory().add(historyEntry);
         
         return ticketRepository.save(ticket);
+    }
+
+    /**
+     * Find similar tickets to prevent duplicates
+     * Uses simple keyword matching and similarity scoring
+     */
+    private List<Ticket> findSimilarTickets(String title, String description, UUID creatorId) {
+        // Get recent tickets from the same user (last 30 days)
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        List<Ticket> recentTickets = ticketRepository.findByCreatedByIdAndCreatedAtAfter(creatorId, thirtyDaysAgo);
+        
+        List<Ticket> similarTickets = new ArrayList<>();
+        String lowerTitle = title.toLowerCase();
+        String lowerDescription = description.toLowerCase();
+        
+        for (Ticket existingTicket : recentTickets) {
+            // Skip closed tickets
+            if (existingTicket.getStatus() == TicketStatus.CLOSED) {
+                continue;
+            }
+            
+            String existingTitle = existingTicket.getTitle().toLowerCase();
+            String existingDescription = existingTicket.getDescription().toLowerCase();
+            
+            // Check for high similarity
+            double titleSimilarity = calculateSimilarity(lowerTitle, existingTitle);
+            double descriptionSimilarity = calculateSimilarity(lowerDescription, existingDescription);
+            
+            // Consider it similar if title similarity > 70% OR description similarity > 80%
+            if (titleSimilarity > 0.7 || descriptionSimilarity > 0.8) {
+                similarTickets.add(existingTicket);
+            }
+        }
+        
+        return similarTickets;
+    }
+    
+    /**
+     * Calculate similarity between two strings using a simple algorithm
+     * Returns a value between 0.0 (no similarity) and 1.0 (identical)
+     */
+    private double calculateSimilarity(String s1, String s2) {
+        if (s1 == null || s2 == null) return 0.0;
+        if (s1.equals(s2)) return 1.0;
+        
+        // Simple implementation using common words
+        String[] words1 = s1.split("\\s+");
+        String[] words2 = s2.split("\\s+");
+        
+        Set<String> set1 = new HashSet<>();
+        Set<String> set2 = new HashSet<>();
+        
+        // Filter out common words and add to sets
+        for (String word : words1) {
+            if (word.length() > 3 && !isCommonWord(word)) {
+                set1.add(word);
+            }
+        }
+        
+        for (String word : words2) {
+            if (word.length() > 3 && !isCommonWord(word)) {
+                set2.add(word);
+            }
+        }
+        
+        if (set1.isEmpty() && set2.isEmpty()) return 0.0;
+        
+        // Calculate intersection
+        Set<String> intersection = new HashSet<>(set1);
+        intersection.retainAll(set2);
+        
+        // Calculate union
+        Set<String> union = new HashSet<>(set1);
+        union.addAll(set2);
+        
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+    }
+    
+    /**
+     * Check if a word is too common to be useful for similarity matching
+     */
+    private boolean isCommonWord(String word) {
+        Set<String> commonWords = Set.of(
+            "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her", "was", "one", "our", "out", "day", "get", "has", "him", "his", "how", "its", "may", "new", "now", "old", "see", "two", "who", "boy", "did", "she", "use", "her", "now", "air", "any", "may", "say", "each", "which", "their", "said", "them", "they", "were", "been", "have", "there", "could", "other", "after", "first", "never", "these", "think", "where", "being", "every", "great", "might", "shall", "still", "those", "under", "while", "should", "found", "house", "water", "words", "sound", "place", "through", "between", "before", "around", "another", "because", "something", "without"
+        );
+        return commonWords.contains(word.toLowerCase());
     }
 } 
