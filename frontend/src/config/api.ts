@@ -6,6 +6,16 @@ const getApiBaseUrl = (): string => {
   console.log('🌐 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
   console.log('🌐 window.location.hostname:', window.location.hostname);
   
+  // Force production URL if running on Render
+  const isOnRender = window.location.hostname.includes('onrender.com') || 
+                    window.location.hostname.includes('render.com');
+  
+  if (isOnRender) {
+    const renderUrl = 'https://hostel-ticketing-portal.onrender.com/api';
+    console.log('🌐 FORCED: Detected Render deployment, using production backend:', renderUrl);
+    return renderUrl;
+  }
+  
   // If REACT_APP_API_URL is explicitly set, use it
   if (process.env.REACT_APP_API_URL) {
     console.log('🌐 Using explicit REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
@@ -25,7 +35,7 @@ const getApiBaseUrl = (): string => {
     console.log('🌐 Using local backend URL:', localUrl);
     return localUrl;
   } else {
-    // Remote deployment - use Render backend (FIXED)
+    // Remote deployment - use Render backend (FALLBACK)
     const remoteUrl = 'https://hostel-ticketing-portal.onrender.com/api';
     console.log('🌐 Using remote backend URL:', remoteUrl);
     return remoteUrl;
