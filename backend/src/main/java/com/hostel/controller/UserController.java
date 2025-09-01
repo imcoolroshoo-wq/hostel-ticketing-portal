@@ -96,20 +96,27 @@ public class UserController {
         return ResponseEntity.ok(admins);
     }
 
-    // Authenticate user
+    // Authenticate user (supports both email and username)
     @PostMapping("/authenticate")
     public ResponseEntity<Map<String, Object>> authenticateUser(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
+        // Support both "email" and "usernameOrEmail" field names for flexibility
+        String usernameOrEmail = credentials.get("email");
+        if (usernameOrEmail == null) {
+            usernameOrEmail = credentials.get("usernameOrEmail");
+        }
         String password = credentials.get("password");
         
-        if (email == null || password == null) {
-            return ResponseEntity.badRequest().build();
+        if (usernameOrEmail == null || password == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("authenticated", false);
+            response.put("message", "Username/email and password are required");
+            return ResponseEntity.badRequest().body(response);
         }
         
-        boolean isAuthenticated = userService.authenticateUser(email, password);
+        boolean isAuthenticated = userService.authenticateUserByUsernameOrEmail(usernameOrEmail, password);
         
         if (isAuthenticated) {
-            User user = userService.getCurrentUser(email);
+            User user = userService.getCurrentUserByUsernameOrEmail(usernameOrEmail);
             Map<String, Object> response = new HashMap<>();
             response.put("authenticated", true);
             response.put("user", user);

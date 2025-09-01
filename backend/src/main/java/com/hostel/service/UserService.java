@@ -175,4 +175,29 @@ public class UserService {
     public Optional<User> findByStaffId(String staffId) {
         return userRepository.findByStaffIdAndIsActiveTrue(staffId);
     }
+    
+    public boolean authenticateUserByUsernameOrEmail(String usernameOrEmail, String password) {
+        // Try to find user by email first, then by username
+        Optional<User> userOpt = userRepository.findByEmailAndIsActiveTrue(usernameOrEmail);
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByUsernameAndIsActiveTrue(usernameOrEmail);
+        }
+        
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            return passwordEncoder.matches(password, user.getPasswordHash());
+        }
+        
+        return false;
+    }
+    
+    public User getCurrentUserByUsernameOrEmail(String usernameOrEmail) {
+        // Try to find user by email first, then by username
+        Optional<User> userOpt = userRepository.findByEmailAndIsActiveTrue(usernameOrEmail);
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByUsernameAndIsActiveTrue(usernameOrEmail);
+        }
+        
+        return userOpt.orElse(null);
+    }
 } 
