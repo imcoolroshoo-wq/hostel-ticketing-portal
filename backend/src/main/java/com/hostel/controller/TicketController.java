@@ -4,6 +4,7 @@ import com.hostel.dto.DTOMapper;
 import com.hostel.dto.TicketDTO;
 import com.hostel.entity.Ticket;
 import com.hostel.entity.TicketCategory;
+import com.hostel.entity.TicketHistory;
 import com.hostel.entity.TicketPriority;
 import com.hostel.entity.TicketStatus;
 import com.hostel.entity.User;

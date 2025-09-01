@@ -65,8 +65,10 @@ public class TicketService {
     }
     
     public List<TicketHistory> getTicketHistory(UUID ticketId) {
-        // This would normally use a TicketHistoryRepository
-        // For now, return an empty list or implement basic history tracking
+        Optional<Ticket> ticketOpt = ticketRepository.findById(ticketId);
+        if (ticketOpt.isPresent()) {
+            return ticketOpt.get().getHistory();
+        }
         return new ArrayList<>();
     }
 
