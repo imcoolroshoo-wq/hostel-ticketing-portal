@@ -13,6 +13,9 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    @Value("${cors.allow-all-origins:false}")
+    private boolean allowAllOrigins;
+
     @Value("${cors.allowed-origins:http://localhost:3000}")
     private String allowedOrigins;
 
@@ -20,14 +23,19 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Parse allowed origins from configuration
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOrigins(origins);
+        if (allowAllOrigins) {
+            // Allow all origins with wildcard pattern (for development/testing)
+            configuration.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            // Parse allowed origins from configuration (for production)
+            List<String> origins = Arrays.asList(allowedOrigins.split(","));
+            configuration.setAllowedOrigins(origins);
+        }
         
-        // Allow specific HTTP methods
+        // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         
-        // Allow specific headers
+        // Allow all headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
         
         // Allow credentials

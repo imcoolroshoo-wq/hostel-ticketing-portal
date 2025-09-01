@@ -86,3 +86,12 @@ file:
 cache:
   redis:
     time-to-live: 3600 # 1 hour
+
+# CORS Configuration - Local Development
+cors:
+  allow-all-origins: true
+  allowed-origins: http://localhost:3000
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
