@@ -90,7 +90,7 @@ const Login: React.FC = () => {
     const demoCredentials = {
       STUDENT: { email: 'student001@iimtrichy.ac.in', password: 'password' },
       STAFF: { email: 'electrical@iimtrichy.ac.in', password: 'password' },
-      ADMIN: { email: 'admin@iimtrichy.ac.in', password: 'password' },
+      ADMIN: { email: 'admin.test@iimtrichy.ac.in', password: 'password' },
     };
 
     try {

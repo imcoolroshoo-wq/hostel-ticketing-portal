@@ -4,42 +4,32 @@
 
 The authentication system now supports **both username and email** login. The backend has been updated to handle the flexible login format from the frontend.
 
-## 🔑 **CURRENT Working Test Credentials for Production**
+## 🔑 **WORKING Production Demo Credentials**
 
-⚠️ **IMPORTANT**: Currently all demo users use the password "password". This will be updated to proper passwords in the next deployment.
+✅ **All users use password: "password"**
 
-### **👑 Admin Access**
+### **👑 Admin Access - WORKING**
 ```
-Username: demo_admin
-Password: password
-```
-**Or using email:**
-```
-Email: admin@iimtrichy.ac.in  
+Username: admin_test
+Email: admin.test@iimtrichy.ac.in
 Password: password
 ```
 
-### **🎓 Student Access**
+### **🎓 Student Access - WORKING**
 ```
 Username: demo_student
-Password: password
-```
-**Or using email:**
-```
 Email: student001@iimtrichy.ac.in
 Password: password
 ```
 
-### **🔧 Staff Access (Electrical)**
+### **🔧 Staff Access - WORKING**
 ```
 Username: demo_electrical
-Password: password
-```
-**Or using email:**
-```
 Email: electrical@iimtrichy.ac.in
 Password: password
 ```
+
+**Note:** `demo_admin` user is currently inactive. Use `admin_test` for admin access.
 
 ### **🛠️ Additional Test Users**
 
