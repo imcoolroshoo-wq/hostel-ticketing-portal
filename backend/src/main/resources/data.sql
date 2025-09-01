@@ -156,3 +156,167 @@ VALUES
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 ) ON CONFLICT (email) DO NOTHING;
+
+-- =====================================================
+-- CATEGORY STAFF MAPPINGS FOR AUTOMATIC ASSIGNMENT
+-- =====================================================
+-- These mappings enable automatic ticket assignment based on category and hostel block
+-- Priority levels: 1 = highest priority, higher numbers = lower priority
+-- Capacity weight: 1.0 = full capacity, lower values = reduced capacity
+
+-- Demo Electrical Staff Mappings
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    'BLOCK_A',
+    'ELECTRICAL_ISSUES', 
+    1,
+    1.0,
+    5,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'demo_electrical'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- Demo Electrical Staff - All Blocks (fallback)
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'ELECTRICAL_ISSUES', 
+    2,
+    0.8,
+    5,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'demo_electrical'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- Plumbing Staff Mappings  
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    'BLOCK_A',
+    'PLUMBING_WATER', 
+    1,
+    1.0,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_plumbing'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'PLUMBING_WATER', 
+    2,
+    0.8,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_plumbing'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- HVAC Staff Mappings
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    'BLOCK_B',
+    'HVAC', 
+    1,
+    1.0,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_hvac'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'HVAC', 
+    2,
+    0.8,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_hvac'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- General Staff Mappings (fallback for all categories)
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'GENERAL', 
+    3,
+    0.6,
+    3,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_general'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- Demo Electrical also handles network issues (cross-training)
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'NETWORK_INTERNET', 
+    2,
+    0.7,
+    3,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'demo_electrical'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+-- Housekeeping mappings
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    'BLOCK_A',
+    'HOUSEKEEPING_CLEANLINESS', 
+    1,
+    1.0,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_general'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
+
+INSERT INTO category_staff_mappings (id, staff_id, hostel_block, category, priority_level, capacity_weight, expertise_level, is_active, created_at, updated_at)
+SELECT 
+    gen_random_uuid(),
+    u.id,
+    NULL,
+    'HOUSEKEEPING_CLEANLINESS', 
+    2,
+    0.8,
+    4,
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u WHERE u.username = 'staff_general'
+ON CONFLICT (staff_id, hostel_block, category) DO NOTHING;
