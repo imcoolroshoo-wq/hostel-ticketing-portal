@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
 const Login: React.FC = () => {
   const theme = useTheme();
@@ -55,10 +56,18 @@ const Login: React.FC = () => {
     setLoading(true);
     setError('');
 
+    // Debug: Log API configuration
+    console.log('🐛 Login Debug Info:');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('Computed API_BASE_URL:', API_BASE_URL);
+    console.log('Login URL will be:', `${API_BASE_URL}/users/authenticate`);
+
     try {
       await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (err: any) {
+      console.error('🐛 Login Error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
