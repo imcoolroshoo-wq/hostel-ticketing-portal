@@ -11,21 +11,23 @@ spring:
   
   # Database Configuration - Render PostgreSQL
   datasource:
-    # Option 1: Use separate variables (recommended)
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hostel_ticketing}
-    username: ${DB_USERNAME:hostel_user}
-    password: ${DB_PASSWORD:hostel_password}
-    
-    # Option 2: Use Spring Boot auto-configuration (SPRING_DATASOURCE_*)
-    # This will be used if SPRING_DATASOURCE_URL is provided
-    
+    # Use Render's DATABASE_URL environment variable
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/hostel_ticketing}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
       connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      idle-timeout: 300000      # 5 minutes
+      max-lifetime: 1200000     # 20 minutes
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      # Keep connections alive
+      keepalive-time: 30000     # 30 seconds
+      test-while-idle: true
+      test-on-borrow: true
+      test-on-return: false
+      validation-query: SELECT 1
 
   # JPA Configuration
   jpa:
@@ -41,7 +43,13 @@ spring:
           print_banner: false
         jdbc:
           time_zone: UTC
+        # Additional settings for production stability
+        connection:
+          provider_disables_autocommit: true
+        temp:
+          use_jdbc_metadata_defaults: false
     defer-datasource-initialization: true
+    open-in-view: false
   
   # SQL initialization
   sql:
@@ -75,10 +83,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
+      show-components: always
+  health:
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
 
 # Logging Configuration
 logging:
