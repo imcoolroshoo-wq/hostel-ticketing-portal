@@ -652,6 +652,54 @@ public class TicketController {
         }
     }
 
+    // Unassign ticket - Admin only
+    @PatchMapping("/{id}/unassign")
+    public ResponseEntity<?> unassignTicket(@PathVariable UUID id, @RequestParam UUID adminId) {
+        try {
+            // Verify admin permissions
+            User admin = userService.getUserByIdDirect(adminId);
+            if (admin == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "User not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            if (admin.getRole() != UserRole.ADMIN) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Only admins can unassign tickets");
+                return ResponseEntity.status(403).body(error);
+            }
+            
+            // Get the ticket
+            Ticket ticket = ticketService.getTicketByIdDirect(id);
+            if (ticket == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            // Check if ticket is currently assigned
+            if (ticket.getAssignedTo() == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket is not currently assigned");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Unassign the ticket
+            Ticket unassignedTicket = ticketService.unassignTicket(id, adminId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Ticket unassigned successfully");
+            response.put("ticket", DTOMapper.toTicketDTO(unassignedTicket));
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     // Handle OPTIONS requests for CORS preflight
     @RequestMapping(method = RequestMethod.OPTIONS)
     public ResponseEntity<Void> handleOptions() {

@@ -351,4 +351,47 @@ public class TicketService {
             return ticketRepository.findAll();
         }
     }
+
+    /**
+     * Unassign a ticket - Admin only operation
+     * Changes ticket status from ASSIGNED back to OPEN and removes assignedTo
+     */
+    public Ticket unassignTicket(UUID ticketId, UUID adminId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        
+        if (admin.getRole() != UserRole.ADMIN) {
+            throw new RuntimeException("Only admins can unassign tickets");
+        }
+        
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        
+        if (ticket.getAssignedTo() == null) {
+            throw new RuntimeException("Ticket is not currently assigned");
+        }
+        
+        // Store previous assignment for history
+        User previouslyAssignedTo = ticket.getAssignedTo();
+        
+        // Unassign the ticket
+        ticket.setAssignedTo(null);
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        
+        // Create history entry
+        TicketHistory historyEntry = new TicketHistory();
+        historyEntry.setTicket(ticket);
+        historyEntry.setAction("UNASSIGNED");
+        historyEntry.setComment("Ticket unassigned by admin from " + previouslyAssignedTo.getFirstName() + " " + previouslyAssignedTo.getLastName());
+        historyEntry.setCreatedBy(admin);
+        historyEntry.setCreatedAt(LocalDateTime.now());
+        
+        if (ticket.getHistory() == null) {
+            ticket.setHistory(new ArrayList<>());
+        }
+        ticket.getHistory().add(historyEntry);
+        
+        return ticketRepository.save(ticket);
+    }
 } 

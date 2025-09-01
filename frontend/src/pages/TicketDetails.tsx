@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Typography,
@@ -8,6 +9,7 @@ import {
   Grid,
   Chip,
   Button,
+  CircularProgress,
   Avatar,
   List,
   ListItem,
@@ -91,12 +93,14 @@ interface Ticket {
 const TicketDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [unassigning, setUnassigning] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -156,6 +160,24 @@ const TicketDetails: React.FC = () => {
     } catch (err: any) {
       console.error('Error updating status:', err);
       setError('Failed to update ticket status');
+    }
+  };
+
+  const handleUnassignTicket = async () => {
+    if (!ticket || !user || user.role !== 'ADMIN') return;
+
+    setUnassigning(true);
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/tickets/${id}/unassign?adminId=${user.id}`);
+      console.log('Unassign response:', response.data);
+      
+      // Refresh ticket details to show updated status
+      fetchTicketDetails();
+    } catch (err: any) {
+      console.error('Error unassigning ticket:', err);
+      setError('Failed to unassign ticket');
+    } finally {
+      setUnassigning(false);
     }
   };
 
@@ -513,6 +535,31 @@ const TicketDetails: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Admin Actions - Only for Admin users */}
+      {user && user.role === 'ADMIN' && ticket && ticket.assignedTo && (
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Admin Actions
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={handleUnassignTicket}
+                disabled={unassigning}
+                startIcon={unassigning ? <CircularProgress size={16} /> : null}
+              >
+                {unassigning ? 'Unassigning...' : 'Unassign Ticket'}
+              </Button>
+              <Typography variant="body2" color="text.secondary">
+                Currently assigned to: {ticket.assignedTo.firstName} {ticket.assignedTo.lastName} ({ticket.assignedTo.email})
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Ticket History */}
       {ticket.history && ticket.history.length > 0 && (
