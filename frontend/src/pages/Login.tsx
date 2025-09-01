@@ -64,8 +64,17 @@ const Login: React.FC = () => {
     console.log('Login URL will be:', `${API_BASE_URL}/users/authenticate`);
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      console.log('🐛 Attempting login with:', { email: formData.email, password: '***' });
+      const success = await login(formData.email, formData.password);
+      console.log('🐛 Login result:', success);
+      
+      if (success) {
+        console.log('🐛 Login successful, navigating to dashboard');
+        navigate('/dashboard');
+      } else {
+        console.log('🐛 Login failed, setting error');
+        setError('Login failed. Please check your credentials.');
+      }
     } catch (err: any) {
       console.error('🐛 Login Error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');

@@ -67,14 +67,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('🔐 AuthContext: Starting login process');
+      console.log('🔐 Login URL:', API_ENDPOINTS.LOGIN);
+      console.log('🔐 Request data:', { email, password: '***' });
+      
       const response = await axios.post(API_ENDPOINTS.LOGIN, {
         email,
         password
       });
 
+      console.log('🔐 Response status:', response.status);
+      console.log('🔐 Response data:', response.data);
+
       if (response.data.authenticated) {
         const userData = response.data.user;
         const authToken = response.data.token || `temp-token-${userData.id}`;
+        
+        console.log('🔐 Authentication successful');
+        console.log('🔐 User data:', userData);
+        console.log('🔐 Auth token:', authToken);
         
         setUser(userData);
         setToken(authToken);
@@ -86,11 +97,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Set default authorization header
         axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
         
+        console.log('🔐 Login process completed successfully');
         return true;
+      } else {
+        console.log('🔐 Authentication failed - server returned authenticated: false');
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('🔐 Login error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('🔐 Axios error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+      }
       return false;
     } finally {
       setIsLoading(false);
