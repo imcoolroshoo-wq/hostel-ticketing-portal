@@ -35,27 +35,17 @@ RUN apk add --no-cache postgresql-client
 # Copy the built JAR file from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Copy startup script and database initialization
-COPY render-start.sh /app/render-start.sh
+# Copy database initialization
 COPY railway-init.sql /app/railway-init.sql
 
-# Create uploads directory and set permissions
-RUN mkdir -p /tmp/uploads && \
-    chmod +x /app/render-start.sh && \
-    chown -R appuser:appgroup /app /tmp/uploads
-
-# Switch to non-root user
-USER appuser
+# Create uploads directory
+RUN mkdir -p /tmp/uploads
 
 # Expose port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
-
 # Set JVM options for Render
 ENV JAVA_OPTS="-Xmx400m -Xms200m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Run the application using startup script
-ENTRYPOINT ["/app/render-start.sh"]
+# Run the application directly
+CMD ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=render -jar app.jar"]
