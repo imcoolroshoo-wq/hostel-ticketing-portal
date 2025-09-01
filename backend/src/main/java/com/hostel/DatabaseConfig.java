@@ -52,6 +52,7 @@ public class DatabaseConfig {
             logger.info("Converted JDBC URL: {}", jdbcUrl);
 
             dataSource.setJdbcUrl(jdbcUrl);
+            dataSource.setDriverClassName("org.postgresql.Driver"); // Explicitly set driver
 
             // Extract credentials from URL if present
             try {
@@ -80,6 +81,7 @@ public class DatabaseConfig {
                 logger.warn("EMERGENCY: Using individual PostgreSQL environment variables");
                 logger.info("Emergency database URL: {}", emergencyUrl);
                 dataSource.setJdbcUrl(emergencyUrl);
+                dataSource.setDriverClassName("org.postgresql.Driver"); // Explicitly set driver
                 dataSource.setUsername(username);
                 dataSource.setPassword(password);
             } else {
@@ -87,6 +89,7 @@ public class DatabaseConfig {
                 logger.warn("DatabaseConfig: DATABASE_URL is empty or null, using fallback configuration");
                 // Fallback configuration - this will fail in production but shows the issue
                 dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/hostel_ticketing");
+                dataSource.setDriverClassName("org.postgresql.Driver"); // Explicitly set driver
                 dataSource.setUsername("postgres");
                 dataSource.setPassword("password");
                 logger.error("Using localhost fallback - THIS WILL FAIL IN PRODUCTION!");
@@ -118,16 +121,30 @@ public class DatabaseConfig {
     }
     
     /**
-     * Convert postgresql:// URL format to jdbc:postgresql:// format
+     * Convert postgresql:// URL format to proper jdbc:postgresql:// format
+     * Extract host/port/database from URL with credentials
      */
     private String convertToJdbcUrl(String databaseUrl) {
-        if (databaseUrl.startsWith("postgresql://")) {
-            return "jdbc:" + databaseUrl;
-        } else if (databaseUrl.startsWith("postgres://")) {
-            // Handle postgres:// format as well
-            return "jdbc:postgresql" + databaseUrl.substring("postgres".length());
+        try {
+            if (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://")) {
+                // Parse the URL to extract components
+                String urlWithoutProtocol = databaseUrl.replaceFirst("^(postgresql|postgres)://", "");
+                
+                // Extract credentials and host parts
+                String[] parts = urlWithoutProtocol.split("@");
+                if (parts.length == 2) {
+                    String hostAndDb = parts[1]; // host:port/database
+                    return "jdbc:postgresql://" + hostAndDb;
+                } else {
+                    // No credentials in URL
+                    return "jdbc:postgresql://" + urlWithoutProtocol;
+                }
+            }
+            return databaseUrl; // Already in correct format
+        } catch (Exception e) {
+            logger.error("Error converting database URL: {}", e.getMessage());
+            return "jdbc:postgresql://" + databaseUrl.replaceFirst("^(postgresql|postgres)://", "");
         }
-        return databaseUrl; // Already in correct format or unknown format
     }
     
     /**
