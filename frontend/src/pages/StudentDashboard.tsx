@@ -54,6 +54,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 interface Ticket {
   id: string;
@@ -228,7 +229,7 @@ const StudentDashboard: React.FC = () => {
       };
 
       console.log('Creating ticket with data:', ticketData);
-      const response = await axios.post(`http://localhost:8080/api/tickets?creatorId=${user.id}`, ticketData);
+      const response = await axios.post(API_ENDPOINTS.TICKETS_SIMPLE(user.id), ticketData);
       console.log('Ticket created successfully:', response.data);
       
       setQuickActionOpen(false);
@@ -236,7 +237,7 @@ const StudentDashboard: React.FC = () => {
       setQuickTicketData({ title: '', description: '', locationDetails: '' });
       
       // Refresh tickets list
-      const ticketsResponse = await axios.get('http://localhost:8080/api/tickets');
+      const ticketsResponse = await axios.get(API_ENDPOINTS.TICKETS);
       const allTickets = ticketsResponse.data.tickets || ticketsResponse.data;
       const userTickets = allTickets.filter((ticket: Ticket) => 
         ticket.createdBy?.id === user?.id
