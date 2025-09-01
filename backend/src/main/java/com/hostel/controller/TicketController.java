@@ -76,23 +76,31 @@ public class TicketController {
                         ticketMap.put("updatedAt", ticket.getUpdatedAt());
                         ticketMap.put("resolvedAt", ticket.getResolvedAt());
                         
-                        // Safe handling of user references
-                        if (ticket.getCreatedBy() != null) {
-                            Map<String, Object> createdBy = new HashMap<>();
-                            createdBy.put("id", ticket.getCreatedBy().getId());
-                            createdBy.put("username", ticket.getCreatedBy().getUsername());
-                            createdBy.put("email", ticket.getCreatedBy().getEmail());
-                            createdBy.put("role", ticket.getCreatedBy().getRole());
-                            ticketMap.put("createdBy", createdBy);
+                        // Safe handling of user references with try-catch
+                        try {
+                            if (ticket.getCreatedBy() != null) {
+                                Map<String, Object> createdBy = new HashMap<>();
+                                createdBy.put("id", ticket.getCreatedBy().getId());
+                                createdBy.put("email", ticket.getCreatedBy().getEmail());
+                                createdBy.put("role", ticket.getCreatedBy().getRole());
+                                ticketMap.put("createdBy", createdBy);
+                            }
+                        } catch (Exception userEx) {
+                            // Skip user data if there's an issue
+                            System.err.println("Error accessing createdBy user: " + userEx.getMessage());
                         }
                         
-                        if (ticket.getAssignedTo() != null) {
-                            Map<String, Object> assignedTo = new HashMap<>();
-                            assignedTo.put("id", ticket.getAssignedTo().getId());
-                            assignedTo.put("username", ticket.getAssignedTo().getUsername());
-                            assignedTo.put("email", ticket.getAssignedTo().getEmail());
-                            assignedTo.put("role", ticket.getAssignedTo().getRole());
-                            ticketMap.put("assignedTo", assignedTo);
+                        try {
+                            if (ticket.getAssignedTo() != null) {
+                                Map<String, Object> assignedTo = new HashMap<>();
+                                assignedTo.put("id", ticket.getAssignedTo().getId());
+                                assignedTo.put("email", ticket.getAssignedTo().getEmail());
+                                assignedTo.put("role", ticket.getAssignedTo().getRole());
+                                ticketMap.put("assignedTo", assignedTo);
+                            }
+                        } catch (Exception userEx) {
+                            // Skip user data if there's an issue
+                            System.err.println("Error accessing assignedTo user: " + userEx.getMessage());
                         }
                         
                         return ticketMap;
