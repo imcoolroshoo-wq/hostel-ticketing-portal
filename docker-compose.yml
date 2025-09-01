@@ -1,0 +1,89 @@
+# Docker Compose configuration for Hostel Ticketing Portal
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: hostel_postgres
+    environment:
+      POSTGRES_DB: hostel_ticketing
+      POSTGRES_USER: hostel_user
+      POSTGRES_PASSWORD: hostel_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hostel_network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: hostel_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hostel_network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: hostel_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - hostel_network
+
+  # Backend Spring Boot Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hostel_backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/hostel_ticketing
+      SPRING_DATASOURCE_USERNAME: hostel_user
+      SPRING_DATASOURCE_PASSWORD: hostel_password
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - hostel_network
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hostel_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:8080/api
+    depends_on:
+      - backend
+    networks:
+      - hostel_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  hostel_network:
+    driver: bridge 

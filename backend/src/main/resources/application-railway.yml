@@ -1,0 +1,103 @@
+# Railway Production Configuration
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  # Application Configuration
+  application:
+    name: hostel-ticketing-portal
+  
+  # Database Configuration - Railway PostgreSQL
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        generate_statistics: false
+        types:
+          print_banner: false
+        jdbc:
+          time_zone: UTC
+        
+  # Redis Configuration - Railway Redis (if available)
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 3
+          max-idle: 3
+          min-idle: 0
+
+  # Mail Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Management Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging Configuration
+logging:
+  level:
+    com.hostel: INFO
+    org.springframework.web: WARN
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.context: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000 # 24 hours
+
+# File Upload Configuration
+file:
+  upload:
+    dir: /tmp/uploads/
+    max-size: 10MB
+
+# Cache Configuration
+cache:
+  redis:
+    time-to-live: 3600 # 1 hour
+
+# CORS Configuration
+cors:
+  allowed-origins: ${FRONTEND_URL:http://localhost:3000}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
