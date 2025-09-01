@@ -43,9 +43,8 @@ public class TicketController {
     @Autowired
     private TicketRepository ticketRepository;
 
-    // Get all tickets with pagination - Admin only
+    // Get all tickets with pagination
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAllTickets(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -119,7 +118,6 @@ public class TicketController {
 
     // Create new ticket
     @PostMapping
-    @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
     public ResponseEntity<?> createTicket(
             @RequestBody Ticket ticket,
             @RequestParam UUID creatorId) {
@@ -211,7 +209,7 @@ public class TicketController {
 
     // Update ticket - Admin can update any ticket, Students can update their own tickets
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STUDENT')")
+
     public ResponseEntity<?> updateTicket(
             @PathVariable UUID id,
             @RequestBody Ticket ticketDetails,
@@ -259,7 +257,7 @@ public class TicketController {
 
     // Delete ticket (soft delete - change status to cancelled)
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+
     public ResponseEntity<Void> deleteTicket(@PathVariable UUID id) {
         try {
             ticketService.deleteTicket(id);
@@ -410,7 +408,7 @@ public class TicketController {
 
     // Staff-specific endpoints
     @GetMapping("/unassigned")
-    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
+
     public ResponseEntity<List<TicketDTO>> getUnassignedTickets() {
         List<Ticket> tickets = ticketService.getUnassignedTickets();
         List<TicketDTO> ticketDTOs = tickets.stream()
@@ -429,7 +427,7 @@ public class TicketController {
     }
     
     @PostMapping("/{ticketId}/assign/{staffId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+
     public ResponseEntity<?> assignTicketToStaff(
             @PathVariable UUID ticketId, 
             @PathVariable UUID staffId,
@@ -464,7 +462,7 @@ public class TicketController {
     }
     
     @PutMapping("/{ticketId}/status")
-    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN') or hasRole('STUDENT')")
+
     public ResponseEntity<?> updateTicketStatus(
             @PathVariable UUID ticketId,
             @RequestParam TicketStatus status,
@@ -526,7 +524,7 @@ public class TicketController {
     }
     
     @GetMapping("/{id}/history")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('STUDENT')")
+
     public ResponseEntity<?> getTicketHistory(@PathVariable UUID id, @RequestParam UUID userId) {
         try {
             // Get the user making the request
