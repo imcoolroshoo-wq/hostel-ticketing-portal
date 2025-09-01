@@ -51,24 +51,69 @@ public class TicketController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? 
-            Sort.Direction.ASC : Sort.Direction.DESC;
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-        Page<Ticket> tickets = ticketService.getAllTickets(pageable);
-        
-        List<TicketDTO> ticketDTOs = tickets.getContent().stream()
-                .map(DTOMapper::toTicketDTO)
-                .collect(Collectors.toList());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("tickets", ticketDTOs);
-        response.put("currentPage", tickets.getNumber());
-        response.put("totalItems", tickets.getTotalElements());
-        response.put("totalPages", tickets.getTotalPages());
-        response.put("size", tickets.getSize());
-        
-        return ResponseEntity.ok(response);
+        try {
+            Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? 
+                Sort.Direction.ASC : Sort.Direction.DESC;
+            
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<Ticket> tickets = ticketService.getAllTickets(pageable);
+            
+            // Create simplified response to avoid DTO issues
+            List<Map<String, Object>> ticketList = tickets.getContent().stream()
+                    .map(ticket -> {
+                        Map<String, Object> ticketMap = new HashMap<>();
+                        ticketMap.put("id", ticket.getId());
+                        ticketMap.put("ticketNumber", ticket.getTicketNumber());
+                        ticketMap.put("title", ticket.getTitle());
+                        ticketMap.put("description", ticket.getDescription());
+                        ticketMap.put("category", ticket.getCategory());
+                        ticketMap.put("priority", ticket.getPriority());
+                        ticketMap.put("status", ticket.getStatus());
+                        ticketMap.put("hostelBlock", ticket.getHostelBlock());
+                        ticketMap.put("roomNumber", ticket.getRoomNumber());
+                        ticketMap.put("locationDetails", ticket.getLocationDetails());
+                        ticketMap.put("createdAt", ticket.getCreatedAt());
+                        ticketMap.put("updatedAt", ticket.getUpdatedAt());
+                        ticketMap.put("resolvedAt", ticket.getResolvedAt());
+                        
+                        // Safe handling of user references
+                        if (ticket.getCreatedBy() != null) {
+                            Map<String, Object> createdBy = new HashMap<>();
+                            createdBy.put("id", ticket.getCreatedBy().getId());
+                            createdBy.put("username", ticket.getCreatedBy().getUsername());
+                            createdBy.put("email", ticket.getCreatedBy().getEmail());
+                            createdBy.put("role", ticket.getCreatedBy().getRole());
+                            ticketMap.put("createdBy", createdBy);
+                        }
+                        
+                        if (ticket.getAssignedTo() != null) {
+                            Map<String, Object> assignedTo = new HashMap<>();
+                            assignedTo.put("id", ticket.getAssignedTo().getId());
+                            assignedTo.put("username", ticket.getAssignedTo().getUsername());
+                            assignedTo.put("email", ticket.getAssignedTo().getEmail());
+                            assignedTo.put("role", ticket.getAssignedTo().getRole());
+                            ticketMap.put("assignedTo", assignedTo);
+                        }
+                        
+                        return ticketMap;
+                    })
+                    .collect(Collectors.toList());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("tickets", ticketList);
+            response.put("currentPage", tickets.getNumber());
+            response.put("totalItems", tickets.getTotalElements());
+            response.put("totalPages", tickets.getTotalPages());
+            response.put("size", tickets.getSize());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error fetching tickets: " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Error fetching tickets: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
 
     // Get ticket by ID - Admin can view any ticket, Staff can view assigned tickets, Students can view their own tickets
