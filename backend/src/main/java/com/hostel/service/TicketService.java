@@ -63,6 +63,12 @@ public class TicketService {
     public Ticket getTicketByIdDirect(UUID id) {
         return ticketRepository.findById(id).orElse(null);
     }
+    
+    public List<TicketHistory> getTicketHistory(UUID ticketId) {
+        // This would normally use a TicketHistoryRepository
+        // For now, return an empty list or implement basic history tracking
+        return new ArrayList<>();
+    }
 
     public Ticket createTicket(Ticket ticket, UUID creatorId) {
         User creator = userRepository.findById(creatorId)

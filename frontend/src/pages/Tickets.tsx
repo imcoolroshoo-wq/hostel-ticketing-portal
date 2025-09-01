@@ -155,9 +155,21 @@ const Tickets: React.FC = () => {
   };
 
   // Dialog handlers
-  const handleAssignTicket = (ticket: Ticket) => {
-    setSelectedTicket(ticket);
-    setAssignmentDialogOpen(true);
+  const handleAssignTicket = async (ticket: Ticket) => {
+    if (user?.role === 'STAFF') {
+      // Staff self-assignment
+      try {
+        await axios.post(`${API_ENDPOINTS.TICKETS}/${ticket.id}/assign/${user.id}?requestedBy=${user.id}`);
+        // Refresh tickets
+        await handleAssignmentComplete();
+      } catch (error) {
+        console.error('Error assigning ticket to self:', error);
+      }
+    } else {
+      // Admin assignment - open dialog
+      setSelectedTicket(ticket);
+      setAssignmentDialogOpen(true);
+    }
   };
 
   const handleUpdateStatus = (ticket: Ticket) => {
@@ -189,8 +201,18 @@ const Tickets: React.FC = () => {
   const canAssignTickets = (ticket: Ticket) => {
     if (!user) return false;
     
-    // Only Admin can assign tickets as per Product Design Document
-    return user.role === 'ADMIN' && hasPermission('assign_tickets');
+    // Admin can assign tickets to any staff
+    if (user.role === 'ADMIN' && hasPermission('assign_tickets')) {
+      return true;
+    }
+    
+    // Staff can assign unassigned tickets to themselves only
+    if (user.role === 'STAFF' && !ticket.assignedTo && ticket.status === 'OPEN') {
+      return true;
+    }
+    
+    // Students cannot assign tickets
+    return false;
   };
 
   // Check if user can update ticket status - Strict access control per Product Design
@@ -207,9 +229,11 @@ const Tickets: React.FC = () => {
       return ticket.assignedTo && ticket.assignedTo.id === user.id;
     }
     
-    // Students can only reopen/close their own tickets
+    // Students can only update status of their own tickets (close/reopen only)
     if (user.role === 'STUDENT' && ticket.createdBy && ticket.createdBy.id === user.id) {
-      return hasPermission('reopen_own_tickets') || hasPermission('close_own_tickets');
+      // Students can only close resolved tickets or reopen closed tickets
+      return (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') &&
+             (hasPermission('reopen_own_tickets') || hasPermission('close_own_tickets'));
     }
     
     return false;
@@ -454,14 +478,19 @@ const Tickets: React.FC = () => {
                         </Tooltip>
                       )}
                       
-                      <Tooltip title="Edit Ticket">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate(`/tickets/${ticket.id}/edit`)}
-                        >
-                          <Edit />
-                        </IconButton>
-                      </Tooltip>
+                      {/* Edit button: Students can only edit their own unassigned tickets */}
+                      {((user?.role === 'STUDENT' && ticket.createdBy.id === user.id && !ticket.assignedTo) ||
+                        (user?.role === 'ADMIN') ||
+                        (user?.role === 'STAFF' && ticket.assignedTo?.id === user.id)) && (
+                        <Tooltip title="Edit Ticket">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/tickets/${ticket.id}/edit`)}
+                          >
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </ListItem>
                   {index < filteredTickets.length - 1 && <Divider />}

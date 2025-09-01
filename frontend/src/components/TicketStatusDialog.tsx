@@ -26,6 +26,7 @@ import {
   Refresh
 } from '@mui/icons-material';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 interface Ticket {
   id: string;
@@ -78,10 +79,14 @@ const TicketStatusDialog: React.FC<TicketStatusDialogProps> = ({
 
     // Filter based on user role
     if (userRole === 'STUDENT') {
-      // Students can only close or reopen their own tickets
-      availableStatuses = availableStatuses.filter(status => 
-        status === 'CLOSED' || status === 'REOPENED'
-      );
+      // Students can only close resolved tickets or reopen closed tickets
+      if (currentStatus === 'RESOLVED') {
+        availableStatuses = ['CLOSED'];
+      } else if (currentStatus === 'CLOSED') {
+        availableStatuses = ['REOPENED'];
+      } else {
+        availableStatuses = []; // No status updates allowed for other states
+      }
     } else if (userRole === 'STAFF') {
       // Staff can update tickets assigned to them
       availableStatuses = availableStatuses.filter(status => 
@@ -144,12 +149,7 @@ const TicketStatusDialog: React.FC<TicketStatusDialogProps> = ({
     setSubmitting(true);
     setError(null);
     try {
-      await axios.put(`http://localhost:8080/api/tickets/${ticket.id}/status`, null, {
-        params: {
-          status: selectedStatus,
-          updatedBy: currentUserId
-        }
-      });
+      await axios.put(`${API_ENDPOINTS.TICKETS}/${ticket.id}/status?status=${selectedStatus}&updatedBy=${currentUserId}`);
       onStatusUpdate();
       onClose();
     } catch (error: any) {

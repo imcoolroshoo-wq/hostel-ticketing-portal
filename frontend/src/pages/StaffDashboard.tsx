@@ -105,6 +105,7 @@ const StaffDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [unassignedTickets, setUnassignedTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -119,18 +120,20 @@ const StaffDashboard: React.FC = () => {
   // Fetch tickets based on staff role - only assigned tickets as per Product Design
   useEffect(() => {
     const fetchTickets = async () => {
+      if (!user?.id) return;
+      
       try {
-        const response = await axios.get('http://localhost:8080/api/tickets');
-        const allTickets = response.data.tickets || response.data;
+        // Fetch tickets assigned to this staff member
+        const assignedResponse = await axios.get(`${API_ENDPOINTS.TICKETS}/assigned/${user.id}`);
+        setTickets(assignedResponse.data || []);
         
-        // Staff can only see tickets assigned to them as per Product Design Document
-        const staffTickets = allTickets.filter((ticket: any) => 
-          ticket.assignedTo && ticket.assignedTo.id === user?.id
-        );
-        
-        setTickets(staffTickets);
+        // Fetch unassigned tickets that staff can self-assign
+        const unassignedResponse = await axios.get(`${API_ENDPOINTS.TICKETS}/unassigned`);
+        setUnassignedTickets(unassignedResponse.data || []);
       } catch (error) {
         console.error('Error fetching tickets:', error);
+        setTickets([]);
+        setUnassignedTickets([]);
       } finally {
         setLoading(false);
       }
@@ -163,7 +166,7 @@ const StaffDashboard: React.FC = () => {
   const stats = {
     totalTickets: tickets.length, // Only assigned tickets
     assignedToMe: tickets.length, // All tickets are assigned to this staff member
-    unassigned: 0, // Staff can't see unassigned tickets
+    unassigned: unassignedTickets.length,
     highPriority: tickets.filter(t => t.priority === 'HIGH' || t.priority === 'URGENT').length,
     openTickets: tickets.filter(t => t.status === 'OPEN').length,
     inProgress: tickets.filter(t => t.status === 'IN_PROGRESS').length,

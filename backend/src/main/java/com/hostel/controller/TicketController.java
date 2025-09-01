@@ -523,6 +523,53 @@ public class TicketController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ticketDTOs);
     }
+    
+    @GetMapping("/{id}/history")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF') or hasRole('STUDENT')")
+    public ResponseEntity<?> getTicketHistory(@PathVariable UUID id, @RequestParam UUID userId) {
+        try {
+            // Get the user making the request
+            User requester = userService.getUserByIdDirect(userId);
+            if (requester == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "User not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Get the ticket
+            Ticket ticket = ticketService.getTicketByIdDirect(id);
+            if (ticket == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            // Check permissions based on role
+            if (requester.getRole() == UserRole.STUDENT) {
+                // Students can only view history of their own tickets
+                if (!ticket.getCreatedBy().getId().equals(userId)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Students can only view history of their own tickets");
+                    return ResponseEntity.status(403).body(error);
+                }
+            } else if (requester.getRole() == UserRole.STAFF) {
+                // Staff can view history of tickets assigned to them
+                if (ticket.getAssignedTo() == null || !ticket.getAssignedTo().getId().equals(userId)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Staff can only view history of tickets assigned to them");
+                    return ResponseEntity.status(403).body(error);
+                }
+            }
+            // Admins can view any ticket history (no additional check needed)
+            
+            List<TicketHistory> history = ticketService.getTicketHistory(id);
+            return ResponseEntity.ok(history);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 
     // Handle OPTIONS requests for CORS preflight
     @RequestMapping(method = RequestMethod.OPTIONS)
