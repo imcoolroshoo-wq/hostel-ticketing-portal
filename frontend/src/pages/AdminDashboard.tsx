@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Grid,
@@ -378,7 +379,7 @@ const AdminDashboard: React.FC = () => {
           ...(newUserData.password && { password: newUserData.password })
         };
         console.log('Sending update payload:', updatePayload);
-        const response = await axios.put(`http://localhost:8080/api/admin/users/${selectedUser.id}`, updatePayload);
+        const response = await axios.put(`${API_BASE_URL}/admin/users/${selectedUser.id}`, updatePayload);
         console.log('User updated successfully:', response.data);
         alert('User updated successfully!');
       } else {
@@ -397,7 +398,7 @@ const AdminDashboard: React.FC = () => {
           password: newUserData.password
         };
         console.log('Sending create payload:', userPayload);
-        const response = await axios.post('http://localhost:8080/api/admin/users', userPayload);
+        const response = await axios.post(`${API_BASE_URL}/admin/users`, userPayload);
         console.log('User created successfully:', response.data);
         alert('User created successfully!');
       }
@@ -429,7 +430,7 @@ const AdminDashboard: React.FC = () => {
       );
       
       // Call the API
-      const response = await axios.put(`http://localhost:8080/api/admin/users/${userId}/status`);
+      const response = await axios.put(`${API_BASE_URL}/admin/users/${userId}/status`);
       console.log('User status updated successfully:', response.data);
       
       // Refresh users list to ensure consistency

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Typography,
@@ -212,10 +213,10 @@ const MappingManagement: React.FC = () => {
     try {
       if (selectedMapping) {
         // Update existing mapping
-        await axios.put(`http://localhost:8080/api/admin/mappings/${selectedMapping.id}`, formData);
+        await axios.put(`${API_BASE_URL}/admin/mappings/${selectedMapping.id}`, formData);
       } else {
         // Create new mapping
-        await axios.post('http://localhost:8080/api/admin/mappings', formData);
+        await axios.post(`${API_BASE_URL}/admin/mappings`, formData);
       }
       
       setDialogOpen(false);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Grid,
@@ -117,7 +118,7 @@ const Reports: React.FC = () => {
         setLoading(true);
         
         // Fetch tickets data for analysis
-        const response = await axios.get('http://localhost:8080/api/tickets');
+        const response = await axios.get(`${API_BASE_URL}/tickets`);
         const tickets = response.data.tickets || response.data;
         
         // Process data for reports

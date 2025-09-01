@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Grid,
@@ -100,7 +101,7 @@ const StudentDashboard: React.FC = () => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/tickets');
+        const response = await axios.get(`${API_BASE_URL}/tickets`);
         const allTickets = response.data.tickets || response.data;
         // Filter tickets created by current user
         const userTickets = allTickets.filter((ticket: Ticket) => 

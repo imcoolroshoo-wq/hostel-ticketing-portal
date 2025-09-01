@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Typography,
@@ -105,7 +106,7 @@ const TicketDetails: React.FC = () => {
 
   const fetchTicketDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/tickets/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/tickets/${id}`);
       setTicket(response.data);
     } catch (err: any) {
       console.error('Error fetching ticket:', err);
@@ -123,7 +124,7 @@ const TicketDetails: React.FC = () => {
       // Mock user ID - in real app this would come from authentication context
       const userId = '550e8400-e29b-41d4-a716-446655440000';
       
-      await axios.patch(`http://localhost:8080/api/tickets/${id}/status`, {
+      await axios.patch(`${API_BASE_URL}/tickets/${id}/status`, {
         newStatus: ticket.status,
         comment: newComment,
         userId: userId
@@ -146,7 +147,7 @@ const TicketDetails: React.FC = () => {
       // Mock user ID - in real app this would come from authentication context
       const userId = '550e8400-e29b-41d4-a716-446655440000';
       
-      await axios.patch(`http://localhost:8080/api/tickets/${id}/status`, {
+      await axios.patch(`${API_BASE_URL}/tickets/${id}/status`, {
         newStatus: newStatus,
         userId: userId
       });

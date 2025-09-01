@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 import {
   Box,
   Typography,
@@ -153,7 +154,7 @@ const AdminTicketManagement: React.FC = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/api/tickets');
+      const response = await axios.get(`${API_BASE_URL}/tickets`);
       const ticketsData = response.data.tickets || response.data;
       setTickets(Array.isArray(ticketsData) ? ticketsData : []);
       setError(null);
