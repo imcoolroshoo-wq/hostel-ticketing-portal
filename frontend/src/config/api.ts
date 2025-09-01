@@ -1,48 +1,40 @@
 // API Configuration for different environments
 
 const getApiBaseUrl = (): string => {
-  console.log('🌐 API URL Detection:');
+  console.log('🌐 API URL Detection - FORCED PRODUCTION VERSION:');
   console.log('🌐 NODE_ENV:', process.env.NODE_ENV);
   console.log('🌐 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
   console.log('🌐 window.location.hostname:', window.location.hostname);
   
-  // Force production URL if running on Render
-  const isOnRender = window.location.hostname.includes('onrender.com') || 
-                    window.location.hostname.includes('render.com');
-  
-  if (isOnRender) {
-    const renderUrl = 'https://hostel-ticketing-portal.onrender.com/api';
-    console.log('🌐 FORCED: Detected Render deployment, using production backend:', renderUrl);
-    return renderUrl;
-  }
-  
-  // If REACT_APP_API_URL is explicitly set, use it
-  if (process.env.REACT_APP_API_URL) {
-    console.log('🌐 Using explicit REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    return process.env.REACT_APP_API_URL;
-  }
-  
-  // Check if we're running on localhost (local development)
+  // FORCE PRODUCTION - Always use production URL unless explicitly localhost
   const isLocalhost = window.location.hostname === 'localhost' || 
                      window.location.hostname === '127.0.0.1' ||
                      window.location.hostname === '0.0.0.0';
   
-  console.log('🌐 Is localhost?', isLocalhost);
-  
   if (isLocalhost) {
     // Local development - use local backend
     const localUrl = 'http://localhost:8080/api';
-    console.log('🌐 Using local backend URL:', localUrl);
+    console.log('🌐 LOCAL DEV: Using local backend URL:', localUrl);
     return localUrl;
   } else {
-    // Remote deployment - use Render backend (FALLBACK)
-    const remoteUrl = 'https://hostel-ticketing-portal.onrender.com/api';
-    console.log('🌐 Using remote backend URL:', remoteUrl);
-    return remoteUrl;
+    // ANYTHING ELSE - Force production backend
+    const productionUrl = 'https://hostel-ticketing-portal.onrender.com/api';
+    console.log('🌐 PRODUCTION FORCED: Using production backend:', productionUrl);
+    console.log('🌐 Hostname detected:', window.location.hostname);
+    return productionUrl;
   }
 };
 
-export const API_BASE_URL = getApiBaseUrl();
+// TEMPORARY DEBUG: Force production URL 
+export const API_BASE_URL = process.env.NODE_ENV === 'development' && window.location.hostname === 'localhost' 
+  ? 'http://localhost:8080/api' 
+  : 'https://hostel-ticketing-portal.onrender.com/api';
+
+console.log('🌐 FINAL API_BASE_URL:', API_BASE_URL);
+
+// Keep the function for debugging
+const debugUrl = getApiBaseUrl();
+console.log('🌐 Function would return:', debugUrl);
 
 // API endpoints
 export const API_ENDPOINTS = {
