@@ -924,6 +924,163 @@ public class TicketController {
         }
     }
 
+    // Bulk operations for admin
+    @PostMapping("/bulk-update")
+    public ResponseEntity<?> bulkUpdateTickets(@RequestBody Map<String, Object> bulkData, @RequestParam UUID adminId) {
+        try {
+            // Verify admin permissions
+            User admin = userService.getUserByIdDirect(adminId);
+            if (admin == null || admin.getRole() != UserRole.ADMIN) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Only admins can perform bulk operations");
+                return ResponseEntity.status(403).body(error);
+            }
+            
+            @SuppressWarnings("unchecked")
+            List<String> ticketIds = (List<String>) bulkData.get("ticketIds");
+            String operation = (String) bulkData.get("operation");
+            String newStatus = (String) bulkData.get("newStatus");
+            String assigneeId = (String) bulkData.get("assigneeId");
+            String newPriority = (String) bulkData.get("newPriority");
+            
+            if (ticketIds == null || ticketIds.isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "No tickets selected");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            List<Map<String, Object>> results = new ArrayList<>();
+            int successCount = 0;
+            int failureCount = 0;
+            
+            for (String ticketIdStr : ticketIds) {
+                try {
+                    UUID ticketId = UUID.fromString(ticketIdStr);
+                    Ticket ticket = ticketService.getTicketByIdDirect(ticketId);
+                    
+                    if (ticket == null) {
+                        results.add(Map.of(
+                            "ticketId", ticketIdStr,
+                            "success", false,
+                            "message", "Ticket not found"
+                        ));
+                        failureCount++;
+                        continue;
+                    }
+                    
+                    boolean updated = false;
+                    
+                    // Perform the requested operation
+                    switch (operation) {
+                        case "UPDATE_STATUS":
+                            if (newStatus != null) {
+                                try {
+                                    TicketStatus status = TicketStatus.valueOf(newStatus);
+                                    ticket.setStatus(status);
+                                    updated = true;
+                                } catch (IllegalArgumentException e) {
+                                    results.add(Map.of(
+                                        "ticketId", ticketIdStr,
+                                        "success", false,
+                                        "message", "Invalid status: " + newStatus
+                                    ));
+                                    failureCount++;
+                                    continue;
+                                }
+                            }
+                            break;
+                            
+                        case "ASSIGN":
+                            if (assigneeId != null) {
+                                User assignee = userService.getUserByIdDirect(UUID.fromString(assigneeId));
+                                if (assignee != null && assignee.getRole() == UserRole.STAFF) {
+                                    ticket.setAssignedTo(assignee);
+                                    ticket.setStatus(TicketStatus.ASSIGNED);
+                                    updated = true;
+                                } else {
+                                    results.add(Map.of(
+                                        "ticketId", ticketIdStr,
+                                        "success", false,
+                                        "message", "Invalid assignee"
+                                    ));
+                                    failureCount++;
+                                    continue;
+                                }
+                            }
+                            break;
+                            
+                        case "UPDATE_PRIORITY":
+                            if (newPriority != null) {
+                                try {
+                                    TicketPriority priority = TicketPriority.valueOf(newPriority);
+                                    ticket.setPriority(priority);
+                                    updated = true;
+                                } catch (IllegalArgumentException e) {
+                                    results.add(Map.of(
+                                        "ticketId", ticketIdStr,
+                                        "success", false,
+                                        "message", "Invalid priority: " + newPriority
+                                    ));
+                                    failureCount++;
+                                    continue;
+                                }
+                            }
+                            break;
+                            
+                        case "UNASSIGN":
+                            ticket.setAssignedTo(null);
+                            ticket.setStatus(TicketStatus.OPEN);
+                            updated = true;
+                            break;
+                            
+                        default:
+                            results.add(Map.of(
+                                "ticketId", ticketIdStr,
+                                "success", false,
+                                "message", "Unknown operation: " + operation
+                            ));
+                            failureCount++;
+                            continue;
+                    }
+                    
+                    if (updated) {
+                        ticket.setUpdatedAt(LocalDateTime.now());
+                        ticketRepository.save(ticket);
+                        
+                        results.add(Map.of(
+                            "ticketId", ticketIdStr,
+                            "success", true,
+                            "message", "Updated successfully"
+                        ));
+                        successCount++;
+                    }
+                    
+                } catch (Exception e) {
+                    results.add(Map.of(
+                        "ticketId", ticketIdStr,
+                        "success", false,
+                        "message", "Error: " + e.getMessage()
+                    ));
+                    failureCount++;
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("operation", operation);
+            response.put("totalTickets", ticketIds.size());
+            response.put("successCount", successCount);
+            response.put("failureCount", failureCount);
+            response.put("results", results);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
     // Handle OPTIONS requests for CORS preflight
     @RequestMapping(method = RequestMethod.OPTIONS)
     public ResponseEntity<Void> handleOptions() {
