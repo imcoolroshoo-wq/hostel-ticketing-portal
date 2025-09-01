@@ -3,6 +3,7 @@ package com.hostel;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +16,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * This application provides a comprehensive ticketing system for managing
  * hostel-related issues and their resolution.
  */
-@SpringBootApplication(scanBasePackages = {"com.hostel"})
-@EnableJpaRepositories(basePackages = {"com.hostel.repository"})
+@SpringBootApplication(
+    scanBasePackages = {"com.hostel"},
+    exclude = {RedisRepositoriesAutoConfiguration.class}
+)
+@EnableJpaRepositories(
+    basePackages = {"com.hostel.repository"},
+    considerNestedRepositories = true
+)
 @EnableCaching
 @EnableAsync
 @EnableScheduling
