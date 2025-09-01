@@ -1,40 +1,37 @@
 // API Configuration for different environments
 
 const getApiBaseUrl = (): string => {
-  console.log('🌐 API URL Detection - FORCED PRODUCTION VERSION:');
+  console.log('🌐 Environment Detection:');
   console.log('🌐 NODE_ENV:', process.env.NODE_ENV);
   console.log('🌐 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
   console.log('🌐 window.location.hostname:', window.location.hostname);
+  console.log('🌐 window.location.href:', window.location.href);
   
-  // FORCE PRODUCTION - Always use production URL unless explicitly localhost
+  // First priority: Use environment variable if provided
+  if (process.env.REACT_APP_API_URL) {
+    console.log('🌐 Using REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Second priority: Determine based on hostname
   const isLocalhost = window.location.hostname === 'localhost' || 
                      window.location.hostname === '127.0.0.1' ||
                      window.location.hostname === '0.0.0.0';
   
   if (isLocalhost) {
-    // Local development - use local backend
     const localUrl = 'http://localhost:8080/api';
-    console.log('🌐 LOCAL DEV: Using local backend URL:', localUrl);
+    console.log('🌐 LOCAL DEVELOPMENT: Using local backend:', localUrl);
     return localUrl;
   } else {
-    // ANYTHING ELSE - Force production backend
     const productionUrl = 'https://hostel-ticketing-portal.onrender.com/api';
-    console.log('🌐 PRODUCTION FORCED: Using production backend:', productionUrl);
-    console.log('🌐 Hostname detected:', window.location.hostname);
+    console.log('🌐 PRODUCTION: Using production backend:', productionUrl);
+    console.log('🌐 Detected hostname:', window.location.hostname);
     return productionUrl;
   }
 };
 
-// TEMPORARY DEBUG: Force production URL 
-export const API_BASE_URL = process.env.NODE_ENV === 'development' && window.location.hostname === 'localhost' 
-  ? 'http://localhost:8080/api' 
-  : 'https://hostel-ticketing-portal.onrender.com/api';
-
+export const API_BASE_URL = getApiBaseUrl();
 console.log('🌐 FINAL API_BASE_URL:', API_BASE_URL);
-
-// Keep the function for debugging
-const debugUrl = getApiBaseUrl();
-console.log('🌐 Function would return:', debugUrl);
 
 // API endpoints
 export const API_ENDPOINTS = {
