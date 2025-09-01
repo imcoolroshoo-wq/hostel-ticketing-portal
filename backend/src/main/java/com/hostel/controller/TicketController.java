@@ -7,6 +7,7 @@ import com.hostel.entity.TicketCategory;
 import com.hostel.entity.TicketPriority;
 import com.hostel.entity.TicketStatus;
 import com.hostel.entity.User;
+import com.hostel.entity.UserRole;
 import com.hostel.repository.TicketRepository;
 import com.hostel.service.TicketService;
 import com.hostel.service.UserService;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -77,7 +79,7 @@ public class TicketController {
             if (!ticketOpt.isPresent()) {
                 Map<String, String> error = new HashMap<>();
                 error.put("message", "Ticket not found");
-                return ResponseEntity.notFound().body(error);
+                return ResponseEntity.status(404).body(error);
             }
             
             Ticket ticket = ticketOpt.get();
@@ -219,7 +221,7 @@ public class TicketController {
             if (existingTicket == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("message", "Ticket not found");
-                return ResponseEntity.notFound().body(error);
+                return ResponseEntity.status(404).body(error);
             }
             
             // Get the user making the update
