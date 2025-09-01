@@ -171,7 +171,7 @@ public class EscalationService {
     private User findSupervisorOrSeniorStaff(Ticket ticket) {
         // First try to find a supervisor in the same vertical
         if (ticket.getAssignedTo() != null && ticket.getAssignedTo().getStaffVertical() != null) {
-            List<User> supervisors = userRepository.findSupervisorsByVertical(ticket.getAssignedTo().getStaffVertical());
+            List<User> supervisors = userRepository.findSupervisorsByVertical(ticket.getAssignedTo().getStaffVertical().name());
             if (!supervisors.isEmpty()) {
                 return supervisors.get(0); // Return first available supervisor
             }

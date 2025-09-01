@@ -86,7 +86,27 @@ public enum StaffVertical {
     /**
      * Administrative staff and coordinators
      */
-    ADMIN_STAFF("Admin Staff", "Administrative staff and coordinators", "📋", 8);
+    ADMIN_STAFF("Admin Staff", "Administrative staff and coordinators", "📋", 8),
+    
+    /**
+     * Maintenance supervisors
+     */
+    MAINTENANCE_SUPERVISOR("Maintenance Supervisor", "Maintenance supervisors and team leads", "👷", 10),
+    
+    /**
+     * Assistant wardens
+     */
+    ASSISTANT_WARDEN("Assistant Warden", "Assistant wardens and deputy supervisors", "🏠", 10),
+    
+    /**
+     * Chief wardens
+     */
+    CHIEF_WARDEN("Chief Warden", "Chief wardens and senior administrators", "🏛️", 15),
+    
+    /**
+     * Administrative officers
+     */
+    ADMIN_OFFICER("Admin Officer", "Administrative officers and coordinators", "📋", 12);
     
     private final String displayName;
     private final String description;
@@ -142,6 +162,10 @@ public enum StaffVertical {
             case HOSTEL_WARDEN:
             case BLOCK_SUPERVISOR:
             case ADMIN_STAFF:
+            case MAINTENANCE_SUPERVISOR:
+            case ASSISTANT_WARDEN:
+            case CHIEF_WARDEN:
+            case ADMIN_OFFICER:
                 return true;
             default:
                 return false;
@@ -158,6 +182,9 @@ public enum StaffVertical {
             case SECURITY_OFFICER:
             case HOSTEL_WARDEN:
             case BLOCK_SUPERVISOR:
+            case MAINTENANCE_SUPERVISOR:
+            case ASSISTANT_WARDEN:
+            case CHIEF_WARDEN:
                 return true;
             default:
                 return false;

@@ -48,7 +48,12 @@ public enum AssetStatus {
     /**
      * Asset is being transferred between locations
      */
-    IN_TRANSIT("In Transit", "Asset is being moved to a new location", "🚚");
+    IN_TRANSIT("In Transit", "Asset is being moved to a new location", "🚚"),
+    
+    /**
+     * Asset has been disposed of
+     */
+    DISPOSED("Disposed", "Asset has been disposed of or scrapped", "🗑️");
     
     private final String displayName;
     private final String description;

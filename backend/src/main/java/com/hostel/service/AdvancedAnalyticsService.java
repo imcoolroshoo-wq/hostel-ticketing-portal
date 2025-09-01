@@ -350,7 +350,7 @@ public class AdvancedAnalyticsService {
         while (!currentDate.isAfter(toDate)) {
             LocalDateTime nextDay = currentDate.plusDays(1);
             
-            int created = ticketRepository.countByCreatedAtBetween(currentDate, nextDay);
+            int created = (int) ticketRepository.countByCreatedAtBetween(currentDate, nextDay);
             int resolved = ticketRepository.countByResolvedAtBetween(currentDate, nextDay);
             
             metrics.add(new DailyMetric(currentDate.toLocalDate(), created, resolved));

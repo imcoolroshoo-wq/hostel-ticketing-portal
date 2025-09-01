@@ -57,6 +57,25 @@ public class TicketEscalation {
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "from_level")
+    private EscalationLevel fromLevel;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "to_level")
+    private EscalationLevel toLevel;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "escalated_by")
+    private User escalatedBy;
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private com.hostel.service.EnhancedEscalationService.EscalationStatus status;
+    
     // Constructors
     public TicketEscalation() {}
     
@@ -138,6 +157,46 @@ public class TicketEscalation {
     
     public void setIsAutoEscalated(Boolean isAutoEscalated) {
         this.isAutoEscalated = isAutoEscalated;
+    }
+    
+    public EscalationLevel getFromLevel() {
+        return fromLevel;
+    }
+    
+    public void setFromLevel(EscalationLevel fromLevel) {
+        this.fromLevel = fromLevel;
+    }
+    
+    public EscalationLevel getToLevel() {
+        return toLevel;
+    }
+    
+    public void setToLevel(EscalationLevel toLevel) {
+        this.toLevel = toLevel;
+    }
+    
+    public User getEscalatedBy() {
+        return escalatedBy;
+    }
+    
+    public void setEscalatedBy(User escalatedBy) {
+        this.escalatedBy = escalatedBy;
+    }
+    
+    public String getNotes() {
+        return notes;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+    
+    public com.hostel.service.EnhancedEscalationService.EscalationStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(com.hostel.service.EnhancedEscalationService.EscalationStatus status) {
+        this.status = status;
     }
     
     // Utility methods

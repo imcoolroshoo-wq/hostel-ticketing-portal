@@ -711,4 +711,30 @@ public class BulkOperationsService {
         public Integer getExpertiseLevel() { return expertiseLevel; }
         public void setExpertiseLevel(Integer expertiseLevel) { this.expertiseLevel = expertiseLevel; }
     }
+    
+    /**
+     * Check if a user has permission to update a ticket
+     */
+    private boolean canUserUpdateTicket(User user, Ticket ticket) {
+        if (user == null || ticket == null) {
+            return false;
+        }
+        
+        // Admin can update any ticket
+        if (user.getRole() == UserRole.ADMIN) {
+            return true;
+        }
+        
+        // Staff can only update tickets assigned to them
+        if (user.getRole() == UserRole.STAFF) {
+            return ticket.getAssignedTo() != null && ticket.getAssignedTo().getId().equals(user.getId());
+        }
+        
+        // Students can only update their own tickets (reopen/close)
+        if (user.getRole() == UserRole.STUDENT) {
+            return ticket.getCreatedBy() != null && ticket.getCreatedBy().getId().equals(user.getId());
+        }
+        
+        return false;
+    }
 }

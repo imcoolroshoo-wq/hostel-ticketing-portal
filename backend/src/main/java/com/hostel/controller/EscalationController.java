@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
@@ -92,10 +93,11 @@ public class EscalationController {
     @PostMapping("/manual")
     public ResponseEntity<?> escalateTicketManually(@RequestBody ManualEscalationRequest request) {
         try {
-            Ticket ticket = ticketService.getTicketById(request.getTicketId());
-            if (ticket == null) {
+            Optional<Ticket> ticketOpt = ticketService.getTicketById(request.getTicketId());
+            if (!ticketOpt.isPresent()) {
                 return ResponseEntity.badRequest().body("Ticket not found");
             }
+            Ticket ticket = ticketOpt.get();
 
             User escalatedTo = userService.getUserById(request.getEscalatedToId())
                     .orElseThrow(() -> new RuntimeException("Target user not found"));

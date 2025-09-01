@@ -43,4 +43,9 @@ public interface TicketEscalationRepository extends JpaRepository<TicketEscalati
     long countByResolvedAtIsNull();
     long countByEscalationLevel(Integer level);
     List<TicketEscalation> findByResolvedAtIsNull();
+    
+    // Additional missing methods
+    java.util.Optional<TicketEscalation> findFirstByTicketOrderByEscalatedAtDesc(Ticket ticket);
+    java.util.Optional<TicketEscalation> findFirstByTicketAndToLevelOrderByEscalatedAtDesc(Ticket ticket, com.hostel.entity.EscalationLevel toLevel);
+    List<TicketEscalation> findByTicketAndStatus(Ticket ticket, com.hostel.service.EnhancedEscalationService.EscalationStatus status);
 }

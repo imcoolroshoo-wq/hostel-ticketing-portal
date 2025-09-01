@@ -104,7 +104,17 @@ public enum NotificationType {
     /**
      * System alert notification
      */
-    SYSTEM_ALERT("System Alert", "System alerts and warnings", "⚠️");
+    SYSTEM_ALERT("System Alert", "System alerts and warnings", "⚠️"),
+    
+    /**
+     * Ticket update notification
+     */
+    TICKET_UPDATE("Ticket Update", "General ticket update notification", "📝"),
+    
+    /**
+     * Ticket escalated notification
+     */
+    TICKET_ESCALATED("Ticket Escalated", "Notification when ticket is escalated", "📈");
     
     private final String displayName;
     private final String description;

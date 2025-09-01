@@ -49,6 +49,15 @@ public class TicketHistory {
     @Column(name = "changed_at", nullable = false, updatable = false)
     private LocalDateTime changedAt;
     
+    @Column(name = "action", length = 100)
+    private String action;
+    
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
     // Constructors
     public TicketHistory() {}
     
@@ -115,6 +124,38 @@ public class TicketHistory {
     
     public void setChangedAt(LocalDateTime changedAt) {
         this.changedAt = changedAt;
+    }
+    
+    public String getAction() {
+        return action;
+    }
+    
+    public void setAction(String action) {
+        this.action = action;
+    }
+    
+    public String getComment() {
+        return comment;
+    }
+    
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public User getCreatedBy() {
+        return changedBy;
+    }
+    
+    public void setCreatedBy(User createdBy) {
+        this.changedBy = createdBy;
     }
     
     // Utility methods

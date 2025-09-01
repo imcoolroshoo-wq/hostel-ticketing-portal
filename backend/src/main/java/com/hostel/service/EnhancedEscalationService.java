@@ -114,7 +114,7 @@ public class EnhancedEscalationService {
             escalation.setTicket(ticket);
             escalation.setFromLevel(fromLevel);
             escalation.setToLevel(toLevel);
-            escalation.setReason(reason);
+            escalation.setReason(reason.toString());
             escalation.setEscalatedBy(escalatedBy);
             escalation.setNotes(manualReason);
             escalation.setEscalatedAt(LocalDateTime.now());
@@ -366,7 +366,7 @@ public class EnhancedEscalationService {
                 "Ticket %s has been escalated to %s level due to %s. Immediate attention required.",
                 ticket.getTicketNumber(),
                 escalation.getToLevel().getDisplayName(),
-                escalation.getReason().getDisplayName()
+                escalation.getReason()
         );
         
         // Notify assigned staff

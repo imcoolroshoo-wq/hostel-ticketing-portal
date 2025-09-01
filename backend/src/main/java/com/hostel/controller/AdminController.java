@@ -484,7 +484,7 @@ public class AdminController {
         dto.setStaffId(mapping.getStaff().getId().toString());
         dto.setStaffName(mapping.getStaff().getFirstName() + " " + mapping.getStaff().getLastName());
         dto.setStaffUsername(mapping.getStaff().getUsername());
-        dto.setHostelBlock(mapping.getHostelBlock());
+        dto.setHostelBlock(mapping.getHostelBlockString());
         dto.setCategory(mapping.getCategory());
         dto.setPriorityLevel(mapping.getPriorityLevel());
         dto.setCapacityWeight(mapping.getCapacityWeight().doubleValue());

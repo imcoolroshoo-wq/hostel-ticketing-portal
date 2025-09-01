@@ -73,7 +73,7 @@ public class NotificationService {
      */
     public void sendTicketAssignmentNotification(Ticket ticket, User assignedTo) {
         try {
-            enhancedNotificationService.sendTicketAssignmentNotification(ticket, assignedTo);
+            enhancedNotificationService.sendTicketAssignmentNotification(ticket, assignedTo, ticket.getCreatedBy());
         } catch (Exception e) {
             System.err.println("Failed to send assignment notification: " + e.getMessage());
         }
@@ -95,7 +95,7 @@ public class NotificationService {
      */
     public void sendResolutionNotification(Ticket ticket) {
         try {
-            enhancedNotificationService.sendResolutionNotification(ticket);
+            enhancedNotificationService.sendResolutionNotification(ticket, ticket.getCreatedBy());
         } catch (Exception e) {
             System.err.println("Failed to send resolution notification: " + e.getMessage());
         }

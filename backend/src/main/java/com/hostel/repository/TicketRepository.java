@@ -212,4 +212,15 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     
     // Find tickets created after date
     List<Ticket> findByCreatedAtAfter(LocalDateTime after);
+    
+    // Additional missing methods
+    List<Ticket> findByStatusIn(List<TicketStatus> statuses);
+    
+    long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    List<Ticket> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime after);
+    
+    List<Ticket> findByHostelBlockAndStatusIn(String hostelBlock, List<TicketStatus> statuses);
+    
+    List<Ticket> findByCategoryAndStatusIn(TicketCategory category, List<TicketStatus> statuses);
 } 

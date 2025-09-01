@@ -448,4 +448,101 @@ public class EnhancedNotificationService {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
         notificationRepository.deleteByCreatedAtBefore(cutoffDate);
     }
+    
+    /**
+     * Send status change notification
+     */
+    @Async
+    public CompletableFuture<Void> sendStatusChangeNotification(Ticket ticket, TicketStatus oldStatus, TicketStatus newStatus) {
+        String title = String.format("Ticket Status Updated: %s", ticket.getTicketNumber());
+        String message = String.format(
+            "Ticket status has been updated:\n\n" +
+            "Ticket: %s\n" +
+            "Title: %s\n" +
+            "Previous Status: %s\n" +
+            "New Status: %s\n" +
+            "Updated At: %s",
+            ticket.getTicketNumber(),
+            ticket.getTitle(),
+            oldStatus.getDisplayName(),
+            newStatus.getDisplayName(),
+            LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"))
+        );
+        
+        // Notify ticket creator
+        if (ticket.getCreatedBy() != null) {
+            sendInAppNotification(ticket.getCreatedBy(), title, message, NotificationType.TICKET_UPDATE, ticket);
+        }
+        
+        // Notify assigned staff if different from creator
+        if (ticket.getAssignedTo() != null && 
+            (ticket.getCreatedBy() == null || !ticket.getAssignedTo().getId().equals(ticket.getCreatedBy().getId()))) {
+            sendInAppNotification(ticket.getAssignedTo(), title, message, NotificationType.TICKET_UPDATE, ticket);
+        }
+        
+        return CompletableFuture.completedFuture(null);
+    }
+    
+    /**
+     * Send ticket escalation notification
+     */
+    @Async
+    public CompletableFuture<Void> sendTicketEscalationNotification(Ticket ticket, EscalationLevel escalationLevel) {
+        String title = String.format("Ticket Escalated: %s", ticket.getTicketNumber());
+        String message = String.format(
+            "Ticket has been escalated:\n\n" +
+            "Ticket: %s\n" +
+            "Title: %s\n" +
+            "Escalation Level: %s\n" +
+            "Escalated At: %s",
+            ticket.getTicketNumber(),
+            ticket.getTitle(),
+            escalationLevel.getDisplayName(),
+            LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"))
+        );
+        
+        // Notify relevant users based on escalation level
+        if (ticket.getCreatedBy() != null) {
+            sendInAppNotification(ticket.getCreatedBy(), title, message, NotificationType.TICKET_ESCALATED, ticket);
+        }
+        
+        if (ticket.getAssignedTo() != null) {
+            sendInAppNotification(ticket.getAssignedTo(), title, message, NotificationType.TICKET_ESCALATED, ticket);
+        }
+        
+        return CompletableFuture.completedFuture(null);
+    }
+    
+    /**
+     * Send ticket status notification with custom message
+     */
+    @Async
+    public CompletableFuture<Void> sendTicketStatusNotification(Ticket ticket, TicketStatus status, String customMessage) {
+        String title = String.format("Ticket Status: %s", ticket.getTicketNumber());
+        String message = String.format(
+            "Ticket status notification:\n\n" +
+            "Ticket: %s\n" +
+            "Title: %s\n" +
+            "Status: %s\n" +
+            "Message: %s\n" +
+            "Time: %s",
+            ticket.getTicketNumber(),
+            ticket.getTitle(),
+            status.getDisplayName(),
+            customMessage,
+            LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"))
+        );
+        
+        // Notify relevant users
+        if (ticket.getCreatedBy() != null) {
+            sendInAppNotification(ticket.getCreatedBy(), title, message, NotificationType.TICKET_UPDATE, ticket);
+        }
+        
+        if (ticket.getAssignedTo() != null && 
+            (ticket.getCreatedBy() == null || !ticket.getAssignedTo().getId().equals(ticket.getCreatedBy().getId()))) {
+            sendInAppNotification(ticket.getAssignedTo(), title, message, NotificationType.TICKET_UPDATE, ticket);
+        }
+        
+        return CompletableFuture.completedFuture(null);
+    }
 }

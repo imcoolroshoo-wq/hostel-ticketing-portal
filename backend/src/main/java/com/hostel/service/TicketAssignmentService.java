@@ -396,7 +396,7 @@ public class TicketAssignmentService {
                                                   Integer expertiseLevel) {
         CategoryStaffMapping mapping = new CategoryStaffMapping();
         mapping.setStaff(staff);
-        mapping.setHostelBlock(hostelBlock);
+        mapping.setHostelBlockString(hostelBlock);
         mapping.setCategory(category);
         mapping.setPriorityLevel(priorityLevel);
         mapping.setCapacityWeight(capacityWeight);
