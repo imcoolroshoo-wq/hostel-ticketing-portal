@@ -409,6 +409,7 @@ public class TicketController {
 
     // Staff-specific endpoints
     @GetMapping("/unassigned")
+    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
     public ResponseEntity<List<TicketDTO>> getUnassignedTickets() {
         List<Ticket> tickets = ticketService.getUnassignedTickets();
         List<TicketDTO> ticketDTOs = tickets.stream()
@@ -427,29 +428,84 @@ public class TicketController {
     }
     
     @PostMapping("/{ticketId}/assign/{staffId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<TicketDTO> assignTicketToStaff(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    public ResponseEntity<?> assignTicketToStaff(
             @PathVariable UUID ticketId, 
-            @PathVariable UUID staffId) {
+            @PathVariable UUID staffId,
+            @RequestParam UUID requestedBy) {
         try {
+            // Get the user making the request
+            User requester = userService.getUserByIdDirect(requestedBy);
+            if (requester == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Requester not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Check permissions
+            if (requester.getRole() == UserRole.STAFF) {
+                // Staff can only assign tickets to themselves
+                if (!staffId.equals(requestedBy)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Staff can only assign tickets to themselves");
+                    return ResponseEntity.status(403).body(error);
+                }
+            }
+            // Admins can assign to anyone (no additional check needed)
+            
             Ticket ticket = ticketService.assignTicketToStaff(ticketId, staffId);
             return ResponseEntity.ok(DTOMapper.toTicketDTO(ticket));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
     
     @PutMapping("/{ticketId}/status")
-    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN')")
-    public ResponseEntity<TicketDTO> updateTicketStatus(
+    @PreAuthorize("hasRole('STAFF') or hasRole('ADMIN') or hasRole('STUDENT')")
+    public ResponseEntity<?> updateTicketStatus(
             @PathVariable UUID ticketId,
             @RequestParam TicketStatus status,
             @RequestParam UUID updatedBy) {
         try {
-            Ticket ticket = ticketService.updateTicketStatus(ticketId, status, updatedBy);
-            return ResponseEntity.ok(DTOMapper.toTicketDTO(ticket));
+            // Get the user making the request
+            User updater = userService.getUserByIdDirect(updatedBy);
+            if (updater == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "User not found");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Get the ticket
+            Ticket ticket = ticketService.getTicketByIdDirect(ticketId);
+            if (ticket == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Ticket not found");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            // Check permissions based on role
+            if (updater.getRole() == UserRole.STUDENT) {
+                // Students can only close or reopen their own tickets
+                if (!ticket.getCreatedBy().getId().equals(updatedBy)) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Students can only update their own tickets");
+                    return ResponseEntity.status(403).body(error);
+                }
+                if (status != TicketStatus.CLOSED && status != TicketStatus.REOPENED) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Students can only close or reopen tickets");
+                    return ResponseEntity.status(403).body(error);
+                }
+            }
+            
+            Ticket updatedTicket = ticketService.updateTicketStatus(ticketId, status, updatedBy);
+            return ResponseEntity.ok(DTOMapper.toTicketDTO(updatedTicket));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
     

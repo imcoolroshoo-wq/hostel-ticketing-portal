@@ -84,6 +84,24 @@ public class AdminController {
         }
     }
     
+    // Get user by ID
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<?> getUserById(@PathVariable UUID userId) {
+        try {
+            System.out.println("AdminController: getUserById() called for ID: " + userId);
+            User user = userService.getUserByIdDirect(userId);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            UserDTO userDTO = DTOMapper.toUserDTO(user);
+            return ResponseEntity.ok(userDTO);
+        } catch (Exception e) {
+            System.err.println("AdminController: Error in getUserById(): " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error fetching user: " + e.getMessage());
+        }
+    }
+    
     // Create user endpoint
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody CreateUserRequest request) {
