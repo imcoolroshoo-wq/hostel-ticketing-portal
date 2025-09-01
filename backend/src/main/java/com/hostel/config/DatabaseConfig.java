@@ -1,54 +1,81 @@
 package com.hostel.config;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.sql.DataSource;
 
 /**
- * Environment post-processor to handle Render's PostgreSQL URL format
+ * Database configuration to handle Render's PostgreSQL URL format
  * Render provides DATABASE_URL in postgresql:// format but JDBC needs jdbc:postgresql://
- * This processor converts the URL before Spring Boot processes it
  */
-@Component
-public class DatabaseConfig implements EnvironmentPostProcessor {
+@Configuration
+public class DatabaseConfig {
     
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     
-    @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        String databaseUrl = environment.getProperty("DATABASE_URL");
+    @Value("${DATABASE_URL:}")
+    private String databaseUrl;
+    
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
         
         if (databaseUrl != null && !databaseUrl.isEmpty()) {
-            logger.info("Original DATABASE_URL: {}", maskPassword(databaseUrl));
+            logger.info("Original DATABASE_URL found: {}", maskPassword(databaseUrl));
             
             // Convert postgresql:// to jdbc:postgresql:// if needed
             String jdbcUrl = convertToJdbcUrl(databaseUrl);
             logger.info("Converted JDBC URL: {}", maskPassword(jdbcUrl));
             
-            // Create a new property source with the converted URL
-            Map<String, Object> dbProperties = new HashMap<>();
-            dbProperties.put("spring.datasource.url", jdbcUrl);
+            dataSource.setJdbcUrl(jdbcUrl);
             
             // Extract credentials from URL if present
             try {
-                extractCredentialsFromUrl(databaseUrl, dbProperties);
+                DatabaseCredentials credentials = extractCredentialsFromUrl(databaseUrl);
+                if (credentials != null) {
+                    dataSource.setUsername(credentials.username);
+                    dataSource.setPassword(credentials.password);
+                    logger.info("Extracted credentials for user: {}", credentials.username);
+                }
             } catch (Exception e) {
                 logger.warn("Failed to extract credentials from DATABASE_URL: {}", e.getMessage());
             }
-            
-            // Add the property source with high precedence
-            environment.getPropertySources().addFirst(
-                new MapPropertySource("convertedDatabaseUrl", dbProperties)
-            );
-            
-            logger.info("Database URL conversion completed");
+        } else {
+            // Fallback configuration
+            dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/hostel_ticketing");
+            dataSource.setUsername("postgres");
+            dataSource.setPassword("password");
+            logger.info("Using fallback database configuration");
+        }
+        
+        // Configure HikariCP settings
+        dataSource.setMaximumPoolSize(5);
+        dataSource.setMinimumIdle(2);
+        dataSource.setConnectionTimeout(30000);
+        dataSource.setIdleTimeout(300000);
+        dataSource.setMaxLifetime(1200000);
+        dataSource.setKeepaliveTime(30000);
+        dataSource.setLeakDetectionThreshold(60000);
+        dataSource.setConnectionTestQuery("SELECT 1");
+        
+        logger.info("Database connection configured successfully");
+        return dataSource;
+    }
+    
+    private static class DatabaseCredentials {
+        String username;
+        String password;
+        
+        DatabaseCredentials(String username, String password) {
+            this.username = username;
+            this.password = password;
         }
     }
     
@@ -69,7 +96,7 @@ public class DatabaseConfig implements EnvironmentPostProcessor {
      * Extract username and password from DATABASE_URL
      * Format: postgresql://username:password@host:port/database
      */
-    private void extractCredentialsFromUrl(String databaseUrl, Map<String, Object> properties) {
+    private DatabaseCredentials extractCredentialsFromUrl(String databaseUrl) {
         try {
             // Remove protocol part
             String urlWithoutProtocol = databaseUrl.replaceFirst("^(postgresql|postgres)://", "");
@@ -84,19 +111,16 @@ public class DatabaseConfig implements EnvironmentPostProcessor {
                     String username = credParts[0];
                     String password = credParts[1];
                     
-                    properties.put("spring.datasource.username", username);
-                    properties.put("spring.datasource.password", password);
-                    
-                    logger.info("Extracted database credentials from URL for user: {}", username);
+                    return new DatabaseCredentials(username, password);
                 } else {
                     // Only username, no password
-                    properties.put("spring.datasource.username", credentials);
-                    logger.info("Extracted database username from URL: {}", credentials);
+                    return new DatabaseCredentials(credentials, "");
                 }
             }
         } catch (Exception e) {
             logger.warn("Failed to parse DATABASE_URL for credentials: {}", e.getMessage());
         }
+        return null;
     }
     
     /**
