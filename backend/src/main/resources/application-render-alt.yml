@@ -1,0 +1,88 @@
+# Render Production Configuration - Alternative with Separate DB Variables
+server:
+  port: ${PORT:10000}
+  servlet:
+    context-path: /api
+
+spring:
+  # Application Configuration
+  application:
+    name: hostel-ticketing-portal
+  
+  # Database Configuration - Render PostgreSQL (Separate Variables)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:dpg-d2qgrgn5r7bs73am3nsg-a}:${DB_PORT:5432}/${DB_NAME:hostel_ticketing_db}
+    username: ${DB_USERNAME:hostel_ticketing_db_user}
+    password: ${DB_PASSWORD:FvzhUfPhtQwqu8ohUYjidQY2OU6jEhnx}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        generate_statistics: false
+        types:
+          print_banner: false
+        jdbc:
+          time_zone: UTC
+    defer-datasource-initialization: true
+  
+  # SQL initialization
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+
+  # DISABLE Redis for Render (not available in free tier)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Management Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    com.hostel: INFO
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:render-hostel-super-secure-jwt-secret}
+  expiration: 86400000
+
+# File Upload Configuration
+file:
+  upload:
+    dir: /tmp/uploads/
+    max-size: 10MB
+
+# CORS Configuration - UPDATED FOR RENDER
+cors:
+  allowed-origins: ${FRONTEND_URL:http://localhost:3000},${CORS_ALLOWED_ORIGINS:}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
