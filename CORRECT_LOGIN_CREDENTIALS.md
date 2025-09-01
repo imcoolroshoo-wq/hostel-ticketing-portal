@@ -30,7 +30,7 @@ Email: student001@iimtrichy.ac.in
 Password: student123
 ```
 
-### **🔧 Staff Access**
+### **🔧 Staff Access (Electrical)**
 ```
 Username: demo_electrical
 Password: staff123
@@ -40,6 +40,20 @@ Password: staff123
 Email: electrical@iimtrichy.ac.in
 Password: staff123
 ```
+
+### **🛠️ Additional Test Users**
+
+#### **Additional Admin:**
+- Username: `admin_test` | Email: `admin.test@iimtrichy.ac.in` | Password: `admin123`
+
+#### **Additional Students:**
+- Username: `student_test1` | Email: `student002@iimtrichy.ac.in` | Password: `student123`
+- Username: `student_test2` | Email: `student003@iimtrichy.ac.in` | Password: `student123`
+
+#### **Additional Staff:**
+- Username: `staff_plumbing` | Email: `plumbing@iimtrichy.ac.in` | Password: `staff123`
+- Username: `staff_hvac` | Email: `hvac@iimtrichy.ac.in` | Password: `staff123`
+- Username: `staff_general` | Email: `general@iimtrichy.ac.in` | Password: `staff123`
 
 ## 🚀 **Testing Instructions**
 
