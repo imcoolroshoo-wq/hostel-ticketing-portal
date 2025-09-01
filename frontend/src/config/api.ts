@@ -1,14 +1,35 @@
 // API Configuration for different environments
 
 const getApiBaseUrl = (): string => {
-  // In production, use environment variable (Render deployment)
-  if (process.env.NODE_ENV === 'production') {
-    // Prioritize environment variable, fallback to known backend URL
-    return process.env.REACT_APP_API_URL || 'https://hostel-ticketing-portal.onrender.com/api';
+  console.log('🌐 API URL Detection:');
+  console.log('🌐 NODE_ENV:', process.env.NODE_ENV);
+  console.log('🌐 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+  console.log('🌐 window.location.hostname:', window.location.hostname);
+  
+  // If REACT_APP_API_URL is explicitly set, use it
+  if (process.env.REACT_APP_API_URL) {
+    console.log('🌐 Using explicit REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    return process.env.REACT_APP_API_URL;
   }
   
-  // In development, use localhost
-  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+  // Check if we're running on localhost (local development)
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname === '0.0.0.0';
+  
+  console.log('🌐 Is localhost?', isLocalhost);
+  
+  if (isLocalhost) {
+    // Local development - use local backend
+    const localUrl = 'http://localhost:8080/api';
+    console.log('🌐 Using local backend URL:', localUrl);
+    return localUrl;
+  } else {
+    // Remote deployment - use Render backend
+    const remoteUrl = 'https://hostel-ticketing-portal.onrender.com/api';
+    console.log('🌐 Using remote backend URL:', remoteUrl);
+    return remoteUrl;
+  }
 };
 
 export const API_BASE_URL = getApiBaseUrl();
