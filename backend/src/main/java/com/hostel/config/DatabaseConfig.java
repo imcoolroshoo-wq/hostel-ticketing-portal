@@ -9,7 +9,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 /**
@@ -17,13 +20,26 @@ import javax.sql.DataSource;
  * Render provides DATABASE_URL in postgresql:// format but JDBC needs jdbc:postgresql://
  */
 @Configuration
+@Component
+@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
+@Order(1)  // Run early in the configuration lifecycle
 public class DatabaseConfig {
     
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
     
     @Value("${DATABASE_URL:}")
     private String databaseUrl;
-    
+
+    public DatabaseConfig() {
+        logger.warn("DatabaseConfig constructor called - Configuration class is being instantiated!");
+    }
+
+    @PostConstruct
+    public void init() {
+        logger.warn("DatabaseConfig @PostConstruct called - Configuration is being initialized!");
+        logger.warn("DATABASE_URL environment variable: '{}'", maskPassword(databaseUrl));
+    }
+
     @Bean
     @Primary
     public DataSource dataSource() {

@@ -98,10 +98,11 @@ management:
 # Logging Configuration
 logging:
   level:
-    com.hostel: INFO
+    com.hostel: WARN  # Force our configuration logs to show
+    com.hostel.config: WARN  # Force DatabaseConfig logs
     org.springframework.web: WARN
-    org.springframework.boot.autoconfigure: WARN
-    org.springframework.context: WARN
+    org.springframework.boot.autoconfigure: DEBUG  # Show autoconfiguration
+    org.springframework.context: DEBUG  # Show bean creation
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
