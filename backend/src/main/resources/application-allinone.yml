@@ -1,6 +1,6 @@
-# Render Production Configuration
+# All-in-One Container Configuration
 server:
-  port: ${PORT:10000}
+  port: 8080
   servlet:
     context-path: /api
 
@@ -9,12 +9,14 @@ spring:
   application:
     name: hostel-ticketing-portal
   
-  # Database Configuration - Render PostgreSQL
+  # Database Configuration - Local PostgreSQL in same container
   datasource:
-    url: ${DATABASE_URL}
+    url: jdbc:postgresql://localhost:5432/hostel_ticketing
+    username: hostel_user
+    password: hostel_password
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
       idle-timeout: 600000
@@ -23,7 +25,7 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -42,25 +44,6 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 
-  # DISABLE Redis for Render (not available in free tier)
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-
-  # Mail Configuration
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
 # Management Configuration
 management:
   endpoints:
@@ -69,7 +52,7 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
 
 # Logging Configuration
 logging:
@@ -83,23 +66,18 @@ logging:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET}
+  secret: hostel-ticketing-all-in-one-super-secure-secret
   expiration: 86400000 # 24 hours
 
 # File Upload Configuration
 file:
   upload:
-    dir: /tmp/uploads/
+    dir: /app/uploads/
     max-size: 10MB
-
-# Cache Configuration
-cache:
-  redis:
-    time-to-live: 3600 # 1 hour
 
 # CORS Configuration
 cors:
-  allowed-origins: ${FRONTEND_URL:http://localhost:3000}
+  allowed-origins: http://localhost,http://localhost:80
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: "*"
   allow-credentials: true

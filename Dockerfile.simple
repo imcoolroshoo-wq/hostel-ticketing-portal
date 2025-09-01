@@ -1,0 +1,21 @@
+# Simple All-in-One Deployment using existing Docker Compose
+FROM docker/compose:latest
+
+# Install dependencies
+RUN apk add --no-cache curl wget
+
+# Copy project files
+WORKDIR /app
+COPY . .
+
+# Create startup script
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'echo "Starting Hostel Ticketing Portal..."' >> /app/start.sh && \
+    echo 'docker-compose up --build' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Expose ports
+EXPOSE 80 3000 8080
+
+# Start all services
+CMD ["/app/start.sh"]
