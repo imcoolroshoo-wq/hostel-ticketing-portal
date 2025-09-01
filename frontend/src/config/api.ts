@@ -1,7 +1,7 @@
 // API Configuration for different environments
 
 const getApiBaseUrl = (): string => {
-  // In production (Railway), use environment variable
+  // In production, use environment variable (Render deployment)
   if (process.env.NODE_ENV === 'production') {
     return process.env.REACT_APP_API_URL || window.location.origin + '/api';
   }
