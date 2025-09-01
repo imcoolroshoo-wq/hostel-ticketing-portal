@@ -31,4 +31,7 @@ public interface TicketEscalationRepository extends JpaRepository<TicketEscalati
     
     // Count escalations by ticket
     int countByTicket(Ticket ticket);
+    
+    // Find escalations by date range
+    List<TicketEscalation> findByEscalatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

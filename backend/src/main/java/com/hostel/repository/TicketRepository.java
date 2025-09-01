@@ -56,6 +56,9 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     // Find tickets created between dates
     Page<Ticket> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
+    // Find tickets created between dates (list)
+    List<Ticket> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
     // Find tickets updated between dates
     Page<Ticket> findByUpdatedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
     
@@ -126,6 +129,12 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.assignedTo = :assignedTo AND t.status IN :statuses")
     int countByAssignedToAndStatusIn(@Param("assignedTo") User assignedTo, @Param("statuses") List<TicketStatus> statuses);
     
+    // Find tickets by assigned user ID and created date range
+    List<Ticket> findByAssignedToIdAndCreatedAtBetween(UUID assignedToId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Count tickets by assigned user ID and status list
+    long countByAssignedToIdAndStatusIn(UUID assignedToId, List<TicketStatus> statuses);
+    
     // Find tickets by hostel block and category
     @Query("SELECT t FROM Ticket t WHERE t.hostelBlock = :hostelBlock AND " +
            "(t.category = :category OR t.customCategory = :category)")
@@ -165,4 +174,42 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     // Feedback queries
     @Query("SELECT t FROM Ticket t WHERE t.satisfactionRating IS NOT NULL")
     List<Ticket> findTicketsWithFeedback();
+    
+    // Quality Assurance queries
+    @Query("SELECT t FROM Ticket t WHERE t.status = 'RESOLVED' AND t.resolvedAt <= :cutoff")
+    List<Ticket> findResolvedTicketsOlderThan(@Param("cutoff") LocalDateTime cutoff);
+    
+    @Query("SELECT t FROM Ticket t WHERE t.resolvedAt BETWEEN :startDate AND :endDate")
+    List<Ticket> findResolvedTicketsBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT t FROM Ticket t WHERE t.hostelBlock = :hostelBlock AND t.roomNumber = :roomNumber " +
+           "AND (t.category = :category OR t.customCategory = :category) " +
+           "AND t.createdAt BETWEEN :startDate AND :endDate")
+    List<Ticket> findSimilarTicketsInLocation(@Param("hostelBlock") String hostelBlock, 
+                                             @Param("roomNumber") String roomNumber,
+                                             @Param("category") String category,
+                                             @Param("startDate") LocalDateTime startDate,
+                                             @Param("endDate") LocalDateTime endDate);
+    
+    // Analytics queries
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status IN :statuses")
+    int countByStatusIn(@Param("statuses") List<TicketStatus> statuses);
+    
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdAt >= :fromDate")
+    int countByCreatedAtAfter(@Param("fromDate") LocalDateTime fromDate);
+    
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status = :status AND t.resolvedAt >= :fromDate")
+    int countByStatusAndResolvedAtAfter(@Param("status") TicketStatus status, @Param("fromDate") LocalDateTime fromDate);
+    
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.resolvedAt BETWEEN :startDate AND :endDate")
+    int countByResolvedAtBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.status = :status AND t.closedAt < :beforeDate")
+    int countByStatusAndClosedAtBefore(@Param("status") TicketStatus status, @Param("beforeDate") LocalDateTime beforeDate);
+    
+    // Find tickets by assigned user and date range
+    List<Ticket> findByAssignedToAndCreatedAtBetween(User assignedTo, LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Find tickets created after date
+    List<Ticket> findByCreatedAtAfter(LocalDateTime after);
 } 
