@@ -2,6 +2,7 @@ package com.hostel.controller;
 
 import com.hostel.entity.TicketStatus;
 import com.hostel.entity.TicketPriority;
+import com.hostel.entity.TicketCategory;
 import com.hostel.entity.User;
 import com.hostel.service.BulkOperationsService;
 import com.hostel.service.UserService;
@@ -230,6 +231,118 @@ public class BulkOperationsController {
         public void setMappingRequests(List<BulkOperationsService.BulkMappingRequest> mappingRequests) { 
             this.mappingRequests = mappingRequests; 
         }
+        public UUID getPerformedById() { return performedById; }
+        public void setPerformedById(UUID performedById) { this.performedById = performedById; }
+    }
+
+    /**
+     * Bulk update ticket categories
+     */
+    @PostMapping("/tickets/categories")
+    public ResponseEntity<?> bulkUpdateTicketCategories(@RequestBody BulkCategoryUpdateRequest request) {
+        try {
+            User performedBy = userService.getUserByIdDirect(request.getPerformedById());
+            if (performedBy == null) {
+                return ResponseEntity.badRequest().body("Invalid user ID");
+            }
+
+            BulkOperationsService.BulkOperationResult result = bulkOperationsService.bulkUpdateTicketCategories(
+                request.getTicketIds(),
+                request.getNewCategory(),
+                request.getReason(),
+                performedBy
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Bulk auto-assign tickets
+     */
+    @PostMapping("/tickets/auto-assign")
+    public ResponseEntity<?> bulkAutoAssignTickets(@RequestBody BulkAutoAssignRequest request) {
+        try {
+            User performedBy = userService.getUserByIdDirect(request.getPerformedById());
+            if (performedBy == null) {
+                return ResponseEntity.badRequest().body("Invalid user ID");
+            }
+
+            BulkOperationsService.BulkOperationResult result = bulkOperationsService.bulkAutoAssignTickets(
+                request.getTicketIds(),
+                request.getReason(),
+                performedBy
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Bulk close tickets
+     */
+    @PostMapping("/tickets/close")
+    public ResponseEntity<?> bulkCloseTickets(@RequestBody BulkCloseRequest request) {
+        try {
+            User performedBy = userService.getUserByIdDirect(request.getPerformedById());
+            if (performedBy == null) {
+                return ResponseEntity.badRequest().body("Invalid user ID");
+            }
+
+            BulkOperationsService.BulkOperationResult result = bulkOperationsService.bulkCloseTickets(
+                request.getTicketIds(),
+                request.getReason(),
+                performedBy
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    public static class BulkCategoryUpdateRequest {
+        private List<UUID> ticketIds;
+        private TicketCategory newCategory;
+        private String reason;
+        private UUID performedById;
+
+        public List<UUID> getTicketIds() { return ticketIds; }
+        public void setTicketIds(List<UUID> ticketIds) { this.ticketIds = ticketIds; }
+        public TicketCategory getNewCategory() { return newCategory; }
+        public void setNewCategory(TicketCategory newCategory) { this.newCategory = newCategory; }
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
+        public UUID getPerformedById() { return performedById; }
+        public void setPerformedById(UUID performedById) { this.performedById = performedById; }
+    }
+
+    public static class BulkAutoAssignRequest {
+        private List<UUID> ticketIds;
+        private String reason;
+        private UUID performedById;
+
+        public List<UUID> getTicketIds() { return ticketIds; }
+        public void setTicketIds(List<UUID> ticketIds) { this.ticketIds = ticketIds; }
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
+        public UUID getPerformedById() { return performedById; }
+        public void setPerformedById(UUID performedById) { this.performedById = performedById; }
+    }
+
+    public static class BulkCloseRequest {
+        private List<UUID> ticketIds;
+        private String reason;
+        private UUID performedById;
+
+        public List<UUID> getTicketIds() { return ticketIds; }
+        public void setTicketIds(List<UUID> ticketIds) { this.ticketIds = ticketIds; }
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
         public UUID getPerformedById() { return performedById; }
         public void setPerformedById(UUID performedById) { this.performedById = performedById; }
     }

@@ -460,6 +460,213 @@ public class BulkOperationsService {
         }
         return field;
     }
+    
+    /**
+     * Bulk update ticket categories
+     */
+    public BulkOperationResult bulkUpdateTicketCategories(List<UUID> ticketIds, TicketCategory newCategory, 
+                                                         String reason, User performedBy) {
+        List<String> successfulUpdates = new ArrayList<>();
+        List<String> failedUpdates = new ArrayList<>();
+        
+        for (UUID ticketId : ticketIds) {
+            try {
+                Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
+                if (ticket == null) {
+                    failedUpdates.add("Ticket " + ticketId + ": Not found");
+                    continue;
+                }
+                
+                if (!canUserUpdateTicket(performedBy, ticket)) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Insufficient permissions");
+                    continue;
+                }
+                
+                TicketCategory oldCategory = ticket.getCategory();
+                ticket.setCategory(newCategory);
+                
+                // Reassign if category changed and ticket is assigned
+                if (ticket.isAssigned() && oldCategory != newCategory) {
+                    User newAssignee = assignmentService.autoAssignTicket(ticket);
+                    if (newAssignee != null && !newAssignee.equals(ticket.getAssignedTo())) {
+                        ticket.setAssignedTo(newAssignee);
+                        ticket.setAssignedAt(LocalDateTime.now());
+                        
+                        // Notify new assignee
+                        notificationService.sendNotification(
+                                newAssignee,
+                                "Ticket Reassigned Due to Category Change",
+                                String.format("Ticket %s has been reassigned to you due to category change to %s",
+                                        ticket.getTicketNumber(), newCategory.getDisplayName()),
+                                NotificationType.TICKET_ASSIGNMENT,
+                                ticket
+                        );
+                    }
+                }
+                
+                ticketRepository.save(ticket);
+                successfulUpdates.add("Ticket " + ticket.getTicketNumber() + ": Category updated to " + newCategory.getDisplayName());
+                
+            } catch (Exception e) {
+                failedUpdates.add("Ticket " + ticketId + ": Error - " + e.getMessage());
+            }
+        }
+        
+        return new BulkOperationResult(successfulUpdates, failedUpdates);
+    }
+    
+    /**
+     * Bulk update ticket priorities
+     */
+    public BulkOperationResult bulkUpdateTicketPriorities(List<UUID> ticketIds, TicketPriority newPriority, 
+                                                         String reason, User performedBy) {
+        List<String> successfulUpdates = new ArrayList<>();
+        List<String> failedUpdates = new ArrayList<>();
+        
+        for (UUID ticketId : ticketIds) {
+            try {
+                Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
+                if (ticket == null) {
+                    failedUpdates.add("Ticket " + ticketId + ": Not found");
+                    continue;
+                }
+                
+                if (!canUserUpdateTicket(performedBy, ticket)) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Insufficient permissions");
+                    continue;
+                }
+                
+                TicketPriority oldPriority = ticket.getPriority();
+                ticket.setPriority(newPriority);
+                ticketRepository.save(ticket);
+                
+                // Notify assigned staff if priority increased
+                if (ticket.isAssigned() && newPriority.isHigherThan(oldPriority)) {
+                    notificationService.sendNotification(
+                            ticket.getAssignedTo(),
+                            "Ticket Priority Increased",
+                            String.format("Priority of ticket %s has been increased to %s via bulk operation",
+                                    ticket.getTicketNumber(), newPriority.getDisplayName()),
+                            NotificationType.STATUS_UPDATE,
+                            ticket
+                    );
+                }
+                
+                successfulUpdates.add("Ticket " + ticket.getTicketNumber() + ": Priority updated to " + newPriority.getDisplayName());
+                
+            } catch (Exception e) {
+                failedUpdates.add("Ticket " + ticketId + ": Error - " + e.getMessage());
+            }
+        }
+        
+        return new BulkOperationResult(successfulUpdates, failedUpdates);
+    }
+    
+    /**
+     * Bulk auto-assign tickets based on intelligent assignment algorithm
+     */
+    public BulkOperationResult bulkAutoAssignTickets(List<UUID> ticketIds, String reason, User performedBy) {
+        List<String> successfulUpdates = new ArrayList<>();
+        List<String> failedUpdates = new ArrayList<>();
+        
+        for (UUID ticketId : ticketIds) {
+            try {
+                Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
+                if (ticket == null) {
+                    failedUpdates.add("Ticket " + ticketId + ": Not found");
+                    continue;
+                }
+                
+                if (!canUserUpdateTicket(performedBy, ticket)) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Insufficient permissions");
+                    continue;
+                }
+                
+                if (!ticket.canBeAssigned()) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Cannot be assigned in current status");
+                    continue;
+                }
+                
+                User assignedStaff = assignmentService.autoAssignTicket(ticket);
+                if (assignedStaff != null) {
+                    ticket.setAssignedTo(assignedStaff);
+                    ticket.setStatus(TicketStatus.ASSIGNED);
+                    ticket.setAssignedAt(LocalDateTime.now());
+                    
+                    ticketRepository.save(ticket);
+                    
+                    // Send notification
+                    notificationService.sendNotification(
+                            assignedStaff,
+                            "Auto-Assignment - New Ticket",
+                            String.format("Ticket %s has been auto-assigned to you via bulk operation",
+                                    ticket.getTicketNumber()),
+                            NotificationType.TICKET_ASSIGNMENT,
+                            ticket
+                    );
+                    
+                    successfulUpdates.add("Ticket " + ticket.getTicketNumber() + ": Auto-assigned to " + assignedStaff.getFullName());
+                } else {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": No suitable staff found for assignment");
+                }
+                
+            } catch (Exception e) {
+                failedUpdates.add("Ticket " + ticketId + ": Error - " + e.getMessage());
+            }
+        }
+        
+        return new BulkOperationResult(successfulUpdates, failedUpdates);
+    }
+    
+    /**
+     * Bulk close tickets with validation
+     */
+    public BulkOperationResult bulkCloseTickets(List<UUID> ticketIds, String reason, User performedBy) {
+        List<String> successfulUpdates = new ArrayList<>();
+        List<String> failedUpdates = new ArrayList<>();
+        
+        for (UUID ticketId : ticketIds) {
+            try {
+                Ticket ticket = ticketRepository.findById(ticketId).orElse(null);
+                if (ticket == null) {
+                    failedUpdates.add("Ticket " + ticketId + ": Not found");
+                    continue;
+                }
+                
+                if (!canUserUpdateTicket(performedBy, ticket)) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Insufficient permissions");
+                    continue;
+                }
+                
+                if (!ticket.isResolved()) {
+                    failedUpdates.add("Ticket " + ticket.getTicketNumber() + ": Cannot close non-resolved ticket");
+                    continue;
+                }
+                
+                ticket.setStatus(TicketStatus.CLOSED);
+                ticket.setClosedAt(LocalDateTime.now());
+                
+                ticketRepository.save(ticket);
+                
+                // Notify ticket creator
+                notificationService.sendNotification(
+                        ticket.getCreatedBy(),
+                        "Ticket Closed",
+                        String.format("Your ticket %s has been closed via bulk operation. Reason: %s",
+                                ticket.getTicketNumber(), reason != null ? reason : "Bulk closure"),
+                        NotificationType.STATUS_UPDATE,
+                        ticket
+                );
+                
+                successfulUpdates.add("Ticket " + ticket.getTicketNumber() + ": Successfully closed");
+                
+            } catch (Exception e) {
+                failedUpdates.add("Ticket " + ticketId + ": Error - " + e.getMessage());
+            }
+        }
+        
+        return new BulkOperationResult(successfulUpdates, failedUpdates);
+    }
 
     // Data classes
 
