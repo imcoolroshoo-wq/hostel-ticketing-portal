@@ -154,7 +154,7 @@ VALUES (
     'Demo',
     'General Staff',
     'STAFF',
-    'GENERAL',
+    'GENERAL_MAINTENANCE',
     '+91-9999999992',
     true,
     CURRENT_TIMESTAMP,
