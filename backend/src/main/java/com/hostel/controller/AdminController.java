@@ -809,4 +809,3 @@ public class AdminController {
         public void setIsFemaleBlock(Boolean isFemaleBlock) { this.isFemaleBlock = isFemaleBlock; }
     }
 }
-}
