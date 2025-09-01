@@ -12,6 +12,7 @@ spring:
   # Database Configuration - Render PostgreSQL
   datasource:
     # Use Render's DATABASE_URL environment variable
+    # Render provides URLs in postgresql:// format, but JDBC needs jdbc:postgresql://
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/hostel_ticketing}
     driver-class-name: org.postgresql.Driver
     hikari:
