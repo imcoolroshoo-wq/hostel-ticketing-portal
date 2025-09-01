@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -217,10 +219,28 @@ public class AdminController {
             UserDTO userDTO = DTOMapper.toUserDTO(user);
             System.out.println("AdminController: UserDTO after conversion - isActive: " + userDTO.getIsActive());
             return ResponseEntity.ok(userDTO);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("User not found")) {
+                System.err.println("AdminController: User not found for toggle: " + userId);
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "User not found");
+                errorResponse.put("message", "The user you're trying to update may have been deleted or doesn't exist");
+                errorResponse.put("userId", userId.toString());
+                return ResponseEntity.status(404).body(errorResponse);
+            }
             System.err.println("AdminController: Error in toggleUserStatus(): " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Error toggling user status: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Internal server error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        } catch (Exception e) {
+            System.err.println("AdminController: Unexpected error in toggleUserStatus(): " + e.getMessage());
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Unexpected error");
+            errorResponse.put("message", "An unexpected error occurred while updating user status");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
     
@@ -788,4 +808,5 @@ public class AdminController {
         public Boolean getIsFemaleBlock() { return isFemaleBlock; }
         public void setIsFemaleBlock(Boolean isFemaleBlock) { this.isFemaleBlock = isFemaleBlock; }
     }
+}
 }
