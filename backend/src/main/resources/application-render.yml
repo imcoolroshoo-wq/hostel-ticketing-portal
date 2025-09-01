@@ -11,7 +11,14 @@ spring:
   
   # Database Configuration - Render PostgreSQL
   datasource:
-    url: ${DATABASE_URL}
+    # Option 1: Use separate variables (recommended)
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hostel_ticketing}
+    username: ${DB_USERNAME:hostel_user}
+    password: ${DB_PASSWORD:hostel_password}
+    
+    # Option 2: Use Spring Boot auto-configuration (SPRING_DATASOURCE_*)
+    # This will be used if SPRING_DATASOURCE_URL is provided
+    
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
