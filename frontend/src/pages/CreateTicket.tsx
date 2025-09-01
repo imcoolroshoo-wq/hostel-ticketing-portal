@@ -26,7 +26,7 @@ import {
   Category,
   QrCodeScanner
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
@@ -44,7 +44,9 @@ interface CreateTicketForm {
 
 const CreateTicket: React.FC = () => {
   const navigate = useNavigate();
+  const { id: ticketId } = useParams();
   const { user } = useAuth();
+  const isEditMode = Boolean(ticketId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -63,6 +65,44 @@ const CreateTicket: React.FC = () => {
   const [errors, setErrors] = useState<Partial<CreateTicketForm>>({});
   const [customCategory, setCustomCategory] = useState('');
   const [showCustomCategory, setShowCustomCategory] = useState(false);
+
+  // Load ticket data when in edit mode
+  useEffect(() => {
+    if (isEditMode && ticketId && user) {
+      const loadTicketData = async () => {
+        try {
+          setLoading(true);
+          const response = await axios.get(`${API_ENDPOINTS.TICKETS}/${ticketId}?userId=${user.id}`);
+          const ticket = response.data;
+          
+          // Pre-fill form with ticket data
+          setFormData({
+            title: ticket.title,
+            description: ticket.description,
+            category: ticket.category || 'GENERAL',
+            priority: ticket.priority,
+            hostelBlock: ticket.hostelBlock || user.hostelBlock || '',
+            roomNumber: ticket.roomNumber || user.roomNumber || '',
+            locationDetails: ticket.locationDetails || ''
+          });
+          
+          // Handle custom category
+          if (ticket.customCategory) {
+            setCustomCategory(ticket.customCategory);
+            setShowCustomCategory(true);
+            setFormData(prev => ({ ...prev, category: 'CUSTOM' }));
+          }
+        } catch (error) {
+          console.error('Error loading ticket data:', error);
+          setError('Failed to load ticket data');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      loadTicketData();
+    }
+  }, [isEditMode, ticketId, user]);
 
   const categories = [
     // Infrastructure Categories
@@ -166,9 +206,16 @@ const CreateTicket: React.FC = () => {
         locationDetails: formData.locationDetails
       };
 
-      const response = await axios.post(API_ENDPOINTS.TICKETS_SIMPLE(creatorId), ticketData);
-      
-      setSuccess('Ticket created successfully!');
+      let response;
+      if (isEditMode) {
+        // Update existing ticket
+        response = await axios.put(`${API_ENDPOINTS.TICKETS}/${ticketId}?updatedBy=${creatorId}`, ticketData);
+        setSuccess('Ticket updated successfully!');
+      } else {
+        // Create new ticket
+        response = await axios.post(API_ENDPOINTS.TICKETS_SIMPLE(creatorId), ticketData);
+        setSuccess('Ticket created successfully!');
+      }
       
       // Redirect to tickets page after a short delay
       setTimeout(() => {
@@ -208,11 +255,14 @@ const CreateTicket: React.FC = () => {
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Create New Ticket
+        {isEditMode ? 'Edit Ticket' : 'Create New Ticket'}
       </Typography>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Report a new issue or request for the hostel. Please provide as much detail as possible to help us resolve your concern quickly.
+        {isEditMode 
+          ? 'Update your ticket details below. Note: You can only edit tickets that haven\'t been assigned to staff yet.'
+          : 'Report a new issue or request for the hostel. Please provide as much detail as possible to help us resolve your concern quickly.'
+        }
       </Typography>
 
       {error && (
@@ -402,7 +452,10 @@ const CreateTicket: React.FC = () => {
                     disabled={loading}
                     startIcon={loading ? <CircularProgress size={20} /> : <Save />}
                   >
-                    {loading ? 'Creating...' : 'Create Ticket'}
+                    {loading 
+                      ? (isEditMode ? 'Updating...' : 'Creating...') 
+                      : (isEditMode ? 'Update Ticket' : 'Create Ticket')
+                    }
                   </Button>
                 </Box>
               </Grid>
