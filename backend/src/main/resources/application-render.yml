@@ -48,6 +48,7 @@ spring:
     init:
       mode: always
       data-locations: classpath:data.sql
+      continue-on-error: false
 
   # DISABLE Redis for Render (not available in free tier)
   autoconfigure:
