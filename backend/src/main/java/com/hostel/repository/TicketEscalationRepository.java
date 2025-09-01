@@ -34,4 +34,13 @@ public interface TicketEscalationRepository extends JpaRepository<TicketEscalati
     
     // Find escalations by date range
     List<TicketEscalation> findByEscalatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Additional methods needed for controller
+    List<TicketEscalation> findByTicketId(UUID ticketId);
+    List<TicketEscalation> findByEscalatedToId(UUID userId);
+    List<TicketEscalation> findByTicketIdOrderByEscalatedAtDesc(UUID ticketId);
+    List<TicketEscalation> findByEscalatedToIdAndResolvedAtIsNull(UUID userId);
+    long countByResolvedAtIsNull();
+    long countByEscalationLevel(Integer level);
+    List<TicketEscalation> findByResolvedAtIsNull();
 }

@@ -44,6 +44,12 @@ public class TicketEscalation {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String reason;
     
+    @Column(name = "escalation_level")
+    private Integer escalationLevel;
+    
+    @Column(name = "is_auto_escalated")
+    private Boolean isAutoEscalated = false;
+    
     @CreationTimestamp
     @Column(name = "escalated_at", nullable = false, updatable = false)
     private LocalDateTime escalatedAt;
@@ -116,6 +122,22 @@ public class TicketEscalation {
     
     public void setResolvedAt(LocalDateTime resolvedAt) {
         this.resolvedAt = resolvedAt;
+    }
+    
+    public Integer getEscalationLevel() {
+        return escalationLevel;
+    }
+    
+    public void setEscalationLevel(Integer escalationLevel) {
+        this.escalationLevel = escalationLevel;
+    }
+    
+    public Boolean getIsAutoEscalated() {
+        return isAutoEscalated;
+    }
+    
+    public void setIsAutoEscalated(Boolean isAutoEscalated) {
+        this.isAutoEscalated = isAutoEscalated;
     }
     
     // Utility methods
