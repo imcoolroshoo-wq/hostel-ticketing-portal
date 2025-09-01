@@ -81,6 +81,15 @@ public class TicketService {
             ticket.setTicketNumber(generateTicketNumber());
         }
         
+        // Auto-assign hostel block from user if not provided
+        if (ticket.getHostelBlock() == null || ticket.getHostelBlock().trim().isEmpty()) {
+            if (creator.getHostelBlock() != null) {
+                ticket.setHostelBlock(creator.getHostelBlock().name());
+            } else {
+                throw new RuntimeException("Hostel block is required. User profile doesn't have hostel block information.");
+            }
+        }
+        
         ticket.setCreatedBy(creator);
         ticket.setStatus(TicketStatus.OPEN);
         ticket.setCreatedAt(LocalDateTime.now());

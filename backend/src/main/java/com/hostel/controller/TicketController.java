@@ -10,6 +10,7 @@ import com.hostel.entity.TicketStatus;
 import com.hostel.entity.User;
 import com.hostel.entity.UserRole;
 import com.hostel.repository.TicketRepository;
+import com.hostel.service.TicketAssignmentService;
 import com.hostel.service.TicketService;
 import com.hostel.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class TicketController {
     
     @Autowired
     private TicketRepository ticketRepository;
+    
+    @Autowired
+    private TicketAssignmentService ticketAssignmentService;
 
     // Get all tickets with pagination
     @GetMapping
@@ -220,7 +224,30 @@ public class TicketController {
                 }
             }
             
-            newTicket.setHostelBlock((String) ticketData.get("hostelBlock"));
+            // Set creator by fetching from database first for hostel block assignment
+            User creator = userService.getUserByIdDirect(creatorId);
+            if (creator == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "User not found");
+                errorResponse.put("message", "Creator user with ID " + creatorId + " not found");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            // Handle hostel block - auto-assign from user if not provided
+            String hostelBlockParam = (String) ticketData.get("hostelBlock");
+            if (hostelBlockParam == null || hostelBlockParam.trim().isEmpty()) {
+                if (creator.getHostelBlock() != null) {
+                    newTicket.setHostelBlock(creator.getHostelBlock().name());
+                } else {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Hostel block required");
+                    errorResponse.put("message", "Hostel block is required. User profile doesn't have hostel block information.");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+            } else {
+                newTicket.setHostelBlock(hostelBlockParam);
+            }
+            
             newTicket.setRoomNumber((String) ticketData.get("roomNumber"));
             newTicket.setLocationDetails((String) ticketData.get("locationDetails"));
             
@@ -229,18 +256,19 @@ public class TicketController {
             newTicket.setStatus(TicketStatus.OPEN);
             newTicket.setCreatedAt(LocalDateTime.now());
             newTicket.setUpdatedAt(LocalDateTime.now());
-            
-            // Set creator by fetching from database
-            User creator = userService.getUserByIdDirect(creatorId);
-            if (creator == null) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "User not found");
-                errorResponse.put("message", "Creator user with ID " + creatorId + " not found");
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
             newTicket.setCreatedBy(creator);
             
-            // Save directly without any service layer
+            // Auto-assign based on category and priority
+            if (newTicket.getAssignedTo() == null) {
+                User autoAssignedUser = ticketAssignmentService.autoAssignTicket(newTicket);
+                if (autoAssignedUser != null) {
+                    newTicket.setAssignedTo(autoAssignedUser);
+                    newTicket.setStatus(TicketStatus.ASSIGNED);
+                }
+                // If no staff members are available, leave assignedTo as null and status as OPEN
+            }
+            
+            // Save ticket with auto-assignment
             Ticket savedTicket = ticketRepository.save(newTicket);
             
             Map<String, Object> response = new HashMap<>();

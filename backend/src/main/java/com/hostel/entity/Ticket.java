@@ -83,8 +83,9 @@ public class Ticket {
     @Column(name = "room_number", length = 10)
     private String roomNumber;
     
+    @NotBlank(message = "Hostel block is required")
     @Size(max = 50, message = "Hostel block name must not exceed 50 characters")
-    @Column(name = "hostel_block", length = 50)
+    @Column(name = "hostel_block", length = 50, nullable = false)
     @JsonProperty("building")
     private String hostelBlock;
     
@@ -281,6 +282,13 @@ public class Ticket {
     
     public void setHostelBlock(String hostelBlock) {
         this.hostelBlock = hostelBlock;
+    }
+    
+    /**
+     * Get hostel block as HostelName enum for assignment logic
+     */
+    public HostelName getHostelBlockEnum() {
+        return hostelBlock != null ? HostelName.fromAnyName(hostelBlock) : null;
     }
     
     public Integer getFloorNumber() {

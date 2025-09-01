@@ -41,7 +41,7 @@ public class TicketAssignmentService {
      */
     public User autoAssignTicket(Ticket ticket) {
         String category = ticket.getEffectiveCategory();
-        String hostelBlock = ticket.getHostelBlock();
+        HostelName hostelBlock = ticket.getHostelBlockEnum();
         TicketPriority priority = ticket.getPriority();
         
         // Handle custom categories - require manual admin assignment
@@ -73,7 +73,7 @@ public class TicketAssignmentService {
      * Find eligible staff mappings based on hostel block and category
      * Implements the mapping priority logic from product design
      */
-    private List<CategoryStaffMapping> findEligibleStaffMappings(String hostelBlock, String category) {
+    private List<CategoryStaffMapping> findEligibleStaffMappings(HostelName hostelBlock, String category) {
         List<CategoryStaffMapping> mappings = new ArrayList<>();
         
         // Priority 1: Exact match (Hostel + Category)
@@ -164,7 +164,7 @@ public class TicketAssignmentService {
     /**
      * Handle fallback assignment scenarios
      */
-    private User handleFallbackAssignment(String category, String hostelBlock, TicketPriority priority) {
+    private User handleFallbackAssignment(String category, HostelName hostelBlock, TicketPriority priority) {
         // Fallback 1: Check category-only mappings
         List<CategoryStaffMapping> categoryMappings = categoryStaffMappingRepository
             .findByCategoryAndIsActiveTrueOrderByPriorityLevelAsc(category);

@@ -1,6 +1,7 @@
 package com.hostel.repository;
 
 import com.hostel.entity.CategoryStaffMapping;
+import com.hostel.entity.HostelName;
 import com.hostel.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,7 +24,7 @@ public interface CategoryStaffMappingRepository extends JpaRepository<CategorySt
      * Find staff mappings by hostel block and category
      */
     @Query("SELECT csm FROM CategoryStaffMapping csm WHERE csm.hostelBlock = :hostelBlock AND csm.category = :category AND csm.isActive = true ORDER BY csm.priorityLevel ASC")
-    List<CategoryStaffMapping> findByHostelBlockAndCategoryAndIsActiveTrueOrderByPriorityLevelAsc(@Param("hostelBlock") String hostelBlock, @Param("category") String category);
+    List<CategoryStaffMapping> findByHostelBlockAndCategoryAndIsActiveTrueOrderByPriorityLevelAsc(@Param("hostelBlock") HostelName hostelBlock, @Param("category") String category);
     
     /**
      * Find staff mappings for category across all hostels (hostel_block is NULL)

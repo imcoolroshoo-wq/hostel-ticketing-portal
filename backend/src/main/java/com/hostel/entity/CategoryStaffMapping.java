@@ -24,8 +24,9 @@ public class CategoryStaffMapping {
     @JoinColumn(name = "staff_id", nullable = false)
     private User staff;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "hostel_block", length = 50)
-    private String hostelBlock; // NULL means all blocks
+    private HostelName hostelBlock; // NULL means all blocks
 
     @Column(nullable = false, length = 100)
     private String category; // Can be enum value or custom category
@@ -53,9 +54,17 @@ public class CategoryStaffMapping {
     // Constructors
     public CategoryStaffMapping() {}
 
-    public CategoryStaffMapping(User staff, String hostelBlock, String category, Integer priorityLevel) {
+    public CategoryStaffMapping(User staff, HostelName hostelBlock, String category, Integer priorityLevel) {
         this.staff = staff;
         this.hostelBlock = hostelBlock;
+        this.category = category;
+        this.priorityLevel = priorityLevel;
+    }
+    
+    // Backward compatibility constructor
+    public CategoryStaffMapping(User staff, String hostelBlockStr, String category, Integer priorityLevel) {
+        this.staff = staff;
+        this.hostelBlock = hostelBlockStr != null ? HostelName.fromAnyName(hostelBlockStr) : null;
         this.category = category;
         this.priorityLevel = priorityLevel;
     }
@@ -85,12 +94,21 @@ public class CategoryStaffMapping {
         this.category = category;
     }
 
-    public String getHostelBlock() {
+    public HostelName getHostelBlock() {
         return hostelBlock;
     }
 
-    public void setHostelBlock(String hostelBlock) {
+    public void setHostelBlock(HostelName hostelBlock) {
         this.hostelBlock = hostelBlock;
+    }
+    
+    // Backward compatibility methods
+    public String getHostelBlockString() {
+        return hostelBlock != null ? hostelBlock.name() : null;
+    }
+    
+    public void setHostelBlockString(String hostelBlockStr) {
+        this.hostelBlock = hostelBlockStr != null ? HostelName.fromAnyName(hostelBlockStr) : null;
     }
 
     public Integer getPriorityLevel() {
