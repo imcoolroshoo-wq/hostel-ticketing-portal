@@ -22,7 +22,6 @@ import {
   Select,
   MenuItem,
   Alert,
-  CircularProgress,
   Paper
 } from '@mui/material';
 

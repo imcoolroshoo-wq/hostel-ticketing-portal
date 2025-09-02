@@ -249,7 +249,7 @@ public class AdminController {
     // =====================================================
     
     // Get all mappings
-    @GetMapping("/mappings")
+    @GetMapping("/category-mappings")
     public ResponseEntity<?> getAllMappings() {
         try {
             System.out.println("AdminController: getAllMappings() called");
@@ -267,7 +267,7 @@ public class AdminController {
     }
     
     // Get mappings by staff ID
-    @GetMapping("/mappings/staff/{staffId}")
+    @GetMapping("/category-mappings/staff/{staffId}")
     public ResponseEntity<List<CategoryStaffMappingDTO>> getMappingsByStaff(@PathVariable UUID staffId) {
         try {
             List<CategoryStaffMapping> mappings = categoryStaffMappingRepository.findByStaffIdAndIsActiveTrue(staffId);
@@ -282,7 +282,7 @@ public class AdminController {
     }
     
     // Get mappings by category
-    @GetMapping("/mappings/category/{category}")
+    @GetMapping("/category-mappings/category/{category}")
     public ResponseEntity<List<CategoryStaffMappingDTO>> getMappingsByCategory(@PathVariable String category) {
         try {
             List<CategoryStaffMapping> mappings = categoryStaffMappingRepository.findByCategoryAndIsActiveTrueOrderByPriorityLevelAsc(category);
@@ -297,7 +297,7 @@ public class AdminController {
     }
     
     // Create new mapping
-    @PostMapping("/mappings")
+    @PostMapping("/category-mappings")
     public ResponseEntity<?> createMapping(@RequestBody CreateMappingRequest request) {
         try {
             System.out.println("AdminController: createMapping() called for staff: " + request.getStaffId());
@@ -341,7 +341,7 @@ public class AdminController {
     }
     
     // Update mapping
-    @PutMapping("/mappings/{mappingId}")
+    @PutMapping("/category-mappings/{mappingId}")
     public ResponseEntity<CategoryStaffMappingDTO> updateMapping(
             @PathVariable UUID mappingId, 
             @RequestBody UpdateMappingRequest request) {
@@ -374,7 +374,7 @@ public class AdminController {
     }
     
     // Delete mapping (soft delete)
-    @DeleteMapping("/mappings/{mappingId}")
+    @DeleteMapping("/category-mappings/{mappingId}")
     public ResponseEntity<Void> deleteMapping(@PathVariable UUID mappingId) {
         try {
             CategoryStaffMapping mapping = categoryStaffMappingRepository.findById(mappingId).orElse(null);
@@ -484,7 +484,7 @@ public class AdminController {
         dto.setStaffId(mapping.getStaff().getId().toString());
         dto.setStaffName(mapping.getStaff().getFirstName() + " " + mapping.getStaff().getLastName());
         dto.setStaffUsername(mapping.getStaff().getUsername());
-        dto.setHostelBlock(mapping.getHostelBlock());
+        dto.setHostelBlock(mapping.getHostelBlockString());
         dto.setCategory(mapping.getCategory());
         dto.setPriorityLevel(mapping.getPriorityLevel());
         dto.setCapacityWeight(mapping.getCapacityWeight().doubleValue());

@@ -180,6 +180,33 @@ function AppLayout() {
           />
           
           <Route 
+            path="/admin/escalations" 
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <div>Escalation Management (Coming Soon)</div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/admin/bulk-operations" 
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <div>Bulk Operations (Coming Soon)</div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/admin/assets" 
+            element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <div>Asset Management (Coming Soon)</div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
             path="/tickets/all" 
             element={
               <ProtectedRoute requiredPermission="view_all_tickets">

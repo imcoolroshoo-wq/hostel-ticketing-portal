@@ -59,6 +59,26 @@ public class TicketAttachment {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    // Photo documentation specific fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "attachment_type")
+    private AttachmentType attachmentType = AttachmentType.GENERAL;
+    
+    @Column(name = "is_before_photo")
+    private Boolean isBeforePhoto = false;
+    
+    @Column(name = "is_after_photo")
+    private Boolean isAfterPhoto = false;
+    
+    @Column(name = "is_required")
+    private Boolean isRequired = false;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(name = "photo_metadata", columnDefinition = "TEXT")
+    private String photoMetadata; // JSON string with GPS, camera info, etc.
+    
     // Constructors
     public TicketAttachment() {}
     
@@ -146,6 +166,54 @@ public class TicketAttachment {
         this.createdAt = createdAt;
     }
     
+    public AttachmentType getAttachmentType() {
+        return attachmentType;
+    }
+    
+    public void setAttachmentType(AttachmentType attachmentType) {
+        this.attachmentType = attachmentType;
+    }
+    
+    public Boolean getIsBeforePhoto() {
+        return isBeforePhoto;
+    }
+    
+    public void setIsBeforePhoto(Boolean isBeforePhoto) {
+        this.isBeforePhoto = isBeforePhoto;
+    }
+    
+    public Boolean getIsAfterPhoto() {
+        return isAfterPhoto;
+    }
+    
+    public void setIsAfterPhoto(Boolean isAfterPhoto) {
+        this.isAfterPhoto = isAfterPhoto;
+    }
+    
+    public Boolean getIsRequired() {
+        return isRequired;
+    }
+    
+    public void setIsRequired(Boolean isRequired) {
+        this.isRequired = isRequired;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    
+    public String getPhotoMetadata() {
+        return photoMetadata;
+    }
+    
+    public void setPhotoMetadata(String photoMetadata) {
+        this.photoMetadata = photoMetadata;
+    }
+    
     // Utility methods
     public boolean isImage() {
         return mimeType != null && mimeType.startsWith("image/");
@@ -204,6 +272,70 @@ public class TicketAttachment {
         // Students can only download attachments on their own tickets
         return ticket != null && ticket.getCreatedBy() != null && 
                ticket.getCreatedBy().getId().equals(user.getId());
+    }
+    
+    /**
+     * Check if this is a documentation photo
+     */
+    public boolean isDocumentationPhoto() {
+        return attachmentType != null && attachmentType.isPhoto();
+    }
+    
+    /**
+     * Check if this attachment is required for quality assurance
+     */
+    public boolean isRequiredForQA() {
+        return isRequired != null && isRequired && 
+               (attachmentType == AttachmentType.BEFORE_WORK_PHOTO || 
+                attachmentType == AttachmentType.AFTER_WORK_PHOTO);
+    }
+    
+    /**
+     * Check if this attachment needs metadata validation
+     */
+    public boolean needsMetadataValidation() {
+        return attachmentType != null && attachmentType.supportsMetadata() && isDocumentationPhoto();
+    }
+    
+    /**
+     * Get photo pair (before/after) identifier
+     */
+    public String getPhotoPairId() {
+        if (!isDocumentationPhoto()) return null;
+        
+        // Generate identifier for matching before/after photos
+        return String.format("%s_%s_%s", 
+                ticket.getId().toString(),
+                attachmentType.name(),
+                uploadedBy.getId().toString());
+    }
+    
+    /**
+     * Validate file against attachment type requirements
+     */
+    public boolean isValidForAttachmentType() {
+        if (attachmentType == null) return true;
+        
+        String extension = getFileExtension().toLowerCase();
+        String[] allowedExtensions = attachmentType.getAllowedExtensions();
+        
+        // Check file extension
+        boolean extensionValid = false;
+        for (String allowed : allowedExtensions) {
+            if (allowed.equals(extension)) {
+                extensionValid = true;
+                break;
+            }
+        }
+        
+        if (!extensionValid) return false;
+        
+        // Check file size
+        if (fileSize != null && fileSize > attachmentType.getMaxFileSizeBytes()) {
+            return false;
+        }
+        
+        return true;
     }
     
     @Override

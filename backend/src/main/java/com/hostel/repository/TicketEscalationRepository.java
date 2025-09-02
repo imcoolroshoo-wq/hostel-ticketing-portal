@@ -31,4 +31,21 @@ public interface TicketEscalationRepository extends JpaRepository<TicketEscalati
     
     // Count escalations by ticket
     int countByTicket(Ticket ticket);
+    
+    // Find escalations by date range
+    List<TicketEscalation> findByEscalatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Additional methods needed for controller
+    List<TicketEscalation> findByTicketId(UUID ticketId);
+    List<TicketEscalation> findByEscalatedToId(UUID userId);
+    List<TicketEscalation> findByTicketIdOrderByEscalatedAtDesc(UUID ticketId);
+    List<TicketEscalation> findByEscalatedToIdAndResolvedAtIsNull(UUID userId);
+    long countByResolvedAtIsNull();
+    long countByEscalationLevel(Integer level);
+    List<TicketEscalation> findByResolvedAtIsNull();
+    
+    // Additional missing methods
+    java.util.Optional<TicketEscalation> findFirstByTicketOrderByEscalatedAtDesc(Ticket ticket);
+    java.util.Optional<TicketEscalation> findFirstByTicketAndToLevelOrderByEscalatedAtDesc(Ticket ticket, com.hostel.entity.EscalationLevel toLevel);
+    List<TicketEscalation> findByTicketAndStatus(Ticket ticket, com.hostel.service.EnhancedEscalationService.EscalationStatus status);
 }

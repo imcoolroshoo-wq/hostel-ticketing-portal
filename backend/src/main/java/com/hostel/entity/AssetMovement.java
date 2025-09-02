@@ -56,6 +56,12 @@ public class AssetMovement {
     
     private LocalDateTime completedDate;
     
+    @Column(name = "movement_type")
+    private String movementType;
+    
+    @Column(name = "moved_at")
+    private LocalDateTime movedAt;
+    
     // Constructors
     public AssetMovement() {}
     
@@ -186,6 +192,22 @@ public class AssetMovement {
     
     public void setCompletedDate(LocalDateTime completedDate) {
         this.completedDate = completedDate;
+    }
+    
+    public String getMovementType() {
+        return movementType;
+    }
+    
+    public void setMovementType(String movementType) {
+        this.movementType = movementType;
+    }
+    
+    public LocalDateTime getMovedAt() {
+        return movedAt;
+    }
+    
+    public void setMovedAt(LocalDateTime movedAt) {
+        this.movedAt = movedAt;
     }
     
     // Utility methods

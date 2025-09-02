@@ -50,6 +50,41 @@ export const API_ENDPOINTS = {
   
   // User management
   DELETE_MAPPING: (mappingId: string) => `${API_BASE_URL}/admin/mappings/${mappingId}`,
+  
+  // Escalation management
+  ESCALATIONS: `${API_BASE_URL}/escalations`,
+  ESCALATION_STATISTICS: `${API_BASE_URL}/escalations/statistics`,
+  MANUAL_ESCALATION: `${API_BASE_URL}/escalations/manual`,
+  PROCESS_AUTO_ESCALATIONS: `${API_BASE_URL}/escalations/process-automatic`,
+  TICKET_ESCALATIONS: (ticketId: string) => `${API_BASE_URL}/escalations/ticket/${ticketId}`,
+  USER_ESCALATIONS: (userId: string) => `${API_BASE_URL}/escalations/user/${userId}`,
+  OVERDUE_ESCALATIONS: `${API_BASE_URL}/escalations/overdue`,
+  
+  // Analytics and reports
+  ANALYTICS: `${API_BASE_URL}/analytics`,
+  ADVANCED_ANALYTICS: `${API_BASE_URL}/analytics/advanced`,
+  REPORTS: `${API_BASE_URL}/reports`,
+  
+  // Bulk operations
+  BULK_OPERATIONS: `${API_BASE_URL}/bulk`,
+  BULK_UPDATE_STATUS: `${API_BASE_URL}/bulk/update-status`,
+  BULK_ASSIGN: `${API_BASE_URL}/bulk/assign`,
+  BULK_EXPORT: `${API_BASE_URL}/bulk/export`,
+  
+  // Quality assurance
+  QA: `${API_BASE_URL}/qa`,
+  QA_VERIFICATION: `${API_BASE_URL}/qa/verification`,
+  QA_QUALITY_CHECKS: `${API_BASE_URL}/qa/quality-checks`,
+  
+  // Asset management
+  ASSETS: `${API_BASE_URL}/assets`,
+  ASSET_MOVEMENTS: `${API_BASE_URL}/assets/movements`,
+  MAINTENANCE_SCHEDULES: `${API_BASE_URL}/assets/maintenance`,
+  
+  // System configuration
+  SYSTEM_CONFIG: `${API_BASE_URL}/system`,
+  SYSTEM_HEALTH: `${API_BASE_URL}/system/health`,
+  SYSTEM_PARAMETERS: `${API_BASE_URL}/system/parameters`,
 } as const;
 
 export default API_BASE_URL;

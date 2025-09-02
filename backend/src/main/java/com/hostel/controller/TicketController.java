@@ -13,6 +13,7 @@ import com.hostel.repository.TicketRepository;
 import com.hostel.service.TicketAssignmentService;
 import com.hostel.service.TicketService;
 import com.hostel.service.UserService;
+import com.hostel.service.QRCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,9 +25,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,6 +50,9 @@ public class TicketController {
     
     @Autowired
     private TicketAssignmentService ticketAssignmentService;
+    
+    @Autowired
+    private QRCodeService qrCodeService;
 
     // Get all tickets with pagination
     @GetMapping
@@ -1086,4 +1093,118 @@ public class TicketController {
     public ResponseEntity<Void> handleOptions() {
         return ResponseEntity.ok().build();
     }
-} 
+
+    // QR Code Generation Endpoints - as per Product Design Document Section 4.3.1
+    
+    /**
+     * Generate QR code for a specific ticket
+     */
+    @GetMapping("/{ticketId}/qr-code")
+    public ResponseEntity<byte[]> generateTicketQRCode(@PathVariable UUID ticketId) {
+        try {
+            Optional<Ticket> ticketOpt = ticketRepository.findById(ticketId);
+            if (ticketOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Ticket ticket = ticketOpt.get();
+            byte[] qrCode = qrCodeService.generateTicketQRCode(ticket);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/png")
+                    .header("Content-Disposition", "inline; filename=\"ticket-" + ticket.getTicketNumber() + "-qr.png\"")
+                    .body(qrCode);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Scan QR code to get ticket information
+     */
+    @PostMapping("/scan-qr")
+    public ResponseEntity<?> scanQRCode(@RequestBody Map<String, String> request) {
+        try {
+            String qrContent = request.get("qrContent");
+            if (qrContent == null || qrContent.trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "QR content is required");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Validate QR content format
+            if (!qrCodeService.isValidTicketQR(qrContent)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Invalid ticket QR code format");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Extract ticket information from QR
+            Map<String, String> ticketInfo = qrCodeService.parseQRContent(qrContent);
+            String ticketIdStr = ticketInfo.get("TICKET_ID");
+            
+            if (ticketIdStr != null) {
+                try {
+                    UUID ticketId = UUID.fromString(ticketIdStr);
+                    Optional<Ticket> ticketOpt = ticketRepository.findById(ticketId);
+                    
+                    if (ticketOpt.isPresent()) {
+                        Ticket ticket = ticketOpt.get();
+                        TicketDTO ticketDTO = DTOMapper.toTicketDTO(ticket);
+                        
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("success", true);
+                        response.put("ticket", ticketDTO);
+                        response.put("qrInfo", ticketInfo);
+                        
+                        return ResponseEntity.ok(response);
+                    } else {
+                        Map<String, String> error = new HashMap<>();
+                        error.put("message", "Ticket not found");
+                        return ResponseEntity.notFound().build();
+                    }
+                } catch (IllegalArgumentException e) {
+                    Map<String, String> error = new HashMap<>();
+                    error.put("message", "Invalid ticket ID format in QR code");
+                    return ResponseEntity.badRequest().body(error);
+                }
+            } else {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "No ticket ID found in QR code");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Error processing QR code: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
+    /**
+     * Get ticket by QR content (for quick access)
+     */
+    @GetMapping("/by-qr")
+    public ResponseEntity<?> getTicketByQR(@RequestParam String qrContent) {
+        try {
+            if (!qrCodeService.isValidTicketQR(qrContent)) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "Invalid ticket QR code format");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            String ticketId = qrCodeService.extractTicketId(qrContent);
+            if (ticketId != null) {
+                return getTicketById(UUID.fromString(ticketId), null);
+            } else {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "No ticket ID found in QR code");
+                return ResponseEntity.badRequest().body(error);
+            }
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Error processing QR code: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+}

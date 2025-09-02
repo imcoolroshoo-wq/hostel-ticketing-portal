@@ -27,6 +27,9 @@ import {
   Assignment,
   Category,
   Map,
+  TrendingUp,
+  SelectAll,
+  Inventory,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -156,6 +159,21 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, width }) => {
           text: 'Reports & Analytics',
           icon: <Assessment />,
           path: '/reports',
+        },
+        {
+          text: 'Escalation Management',
+          icon: <TrendingUp />,
+          path: '/admin/escalations',
+        },
+        {
+          text: 'Bulk Operations',
+          icon: <SelectAll />,
+          path: '/admin/bulk-operations',
+        },
+        {
+          text: 'Asset Management',
+          icon: <Inventory />,
+          path: '/admin/assets',
         },
         {
           text: 'System Settings',

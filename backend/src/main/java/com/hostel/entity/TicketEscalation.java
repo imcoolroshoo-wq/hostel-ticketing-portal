@@ -44,12 +44,37 @@ public class TicketEscalation {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String reason;
     
+    @Column(name = "escalation_level")
+    private Integer escalationLevel;
+    
+    @Column(name = "is_auto_escalated")
+    private Boolean isAutoEscalated = false;
+    
     @CreationTimestamp
     @Column(name = "escalated_at", nullable = false, updatable = false)
     private LocalDateTime escalatedAt;
     
     @Column(name = "resolved_at")
     private LocalDateTime resolvedAt;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "from_level")
+    private EscalationLevel fromLevel;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "to_level")
+    private EscalationLevel toLevel;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "escalated_by")
+    private User escalatedBy;
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private com.hostel.service.EnhancedEscalationService.EscalationStatus status;
     
     // Constructors
     public TicketEscalation() {}
@@ -116,6 +141,62 @@ public class TicketEscalation {
     
     public void setResolvedAt(LocalDateTime resolvedAt) {
         this.resolvedAt = resolvedAt;
+    }
+    
+    public Integer getEscalationLevel() {
+        return escalationLevel;
+    }
+    
+    public void setEscalationLevel(Integer escalationLevel) {
+        this.escalationLevel = escalationLevel;
+    }
+    
+    public Boolean getIsAutoEscalated() {
+        return isAutoEscalated;
+    }
+    
+    public void setIsAutoEscalated(Boolean isAutoEscalated) {
+        this.isAutoEscalated = isAutoEscalated;
+    }
+    
+    public EscalationLevel getFromLevel() {
+        return fromLevel;
+    }
+    
+    public void setFromLevel(EscalationLevel fromLevel) {
+        this.fromLevel = fromLevel;
+    }
+    
+    public EscalationLevel getToLevel() {
+        return toLevel;
+    }
+    
+    public void setToLevel(EscalationLevel toLevel) {
+        this.toLevel = toLevel;
+    }
+    
+    public User getEscalatedBy() {
+        return escalatedBy;
+    }
+    
+    public void setEscalatedBy(User escalatedBy) {
+        this.escalatedBy = escalatedBy;
+    }
+    
+    public String getNotes() {
+        return notes;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+    
+    public com.hostel.service.EnhancedEscalationService.EscalationStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(com.hostel.service.EnhancedEscalationService.EscalationStatus status) {
+        this.status = status;
     }
     
     // Utility methods

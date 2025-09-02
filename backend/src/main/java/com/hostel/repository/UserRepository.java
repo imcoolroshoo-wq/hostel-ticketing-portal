@@ -62,4 +62,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Modifying
     @Query("UPDATE User u SET u.isActive = :isActive, u.updatedAt = :updatedAt WHERE u.id = :userId")
     int updateUserStatus(@Param("userId") UUID userId, @Param("isActive") Boolean isActive, @Param("updatedAt") java.time.LocalDateTime updatedAt);
+    
+    // Additional missing methods
+    List<User> findByIsActiveTrue();
+    
+    List<User> findByStaffVerticalInAndIsActiveTrue(List<StaffVertical> staffVerticals);
 } 
