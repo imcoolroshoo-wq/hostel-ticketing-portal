@@ -585,7 +585,7 @@ public class AnalyticsService {
         
         // Maintenance metrics
         long maintenanceRequired = assetRepository.countAssetsRequiringMaintenance();
-        long expiredWarranty = assetRepository.countAssetsWithExpiredWarranty();
+        long expiredWarranty = assetRepository.countAssetsWithExpiredWarranty(java.time.LocalDate.now());
         
         analytics.put("assetsRequiringMaintenance", maintenanceRequired);
         analytics.put("assetsWithExpiredWarranty", expiredWarranty);

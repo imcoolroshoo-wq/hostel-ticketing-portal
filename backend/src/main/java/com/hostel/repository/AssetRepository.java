@@ -96,30 +96,28 @@ public interface AssetRepository extends JpaRepository<Asset, UUID> {
     List<Asset> findBySearchCriteria(@Param("search") String search);
     
     /**
-     * Find assets requiring maintenance
+     * Find assets requiring maintenance - simplified approach
      */
-    @Query("SELECT a FROM Asset a WHERE a.status = 'MAINTENANCE_REQUIRED' OR " +
-           "EXISTS (SELECT ms FROM MaintenanceSchedule ms WHERE ms.asset = a AND ms.scheduledDate <= CURRENT_DATE AND ms.completedDate IS NULL)")
+    @Query("SELECT a FROM Asset a WHERE a.status = 'MAINTENANCE_REQUIRED'")
     List<Asset> findAssetsRequiringMaintenance();
     
     /**
-     * Count assets requiring maintenance
+     * Count assets requiring maintenance - simplified approach
      */
-    @Query("SELECT COUNT(a) FROM Asset a WHERE a.status = 'MAINTENANCE_REQUIRED' OR " +
-           "EXISTS (SELECT ms FROM MaintenanceSchedule ms WHERE ms.asset = a AND ms.scheduledDate <= CURRENT_DATE AND ms.completedDate IS NULL)")
+    @Query("SELECT COUNT(a) FROM Asset a WHERE a.status = 'MAINTENANCE_REQUIRED'")
     long countAssetsRequiringMaintenance();
     
     /**
-     * Find assets with expired warranty
+     * Find assets with expired warranty - using parameter approach
      */
-    @Query("SELECT a FROM Asset a WHERE a.warrantyExpiry IS NOT NULL AND a.warrantyExpiry < CURRENT_DATE")
-    List<Asset> findAssetsWithExpiredWarranty();
+    @Query("SELECT a FROM Asset a WHERE a.warrantyExpiry IS NOT NULL AND a.warrantyExpiry < :currentDate")
+    List<Asset> findAssetsWithExpiredWarranty(@Param("currentDate") java.time.LocalDate currentDate);
     
     /**
-     * Count assets with expired warranty
+     * Count assets with expired warranty - using parameter approach
      */
-    @Query("SELECT COUNT(a) FROM Asset a WHERE a.warrantyExpiry IS NOT NULL AND a.warrantyExpiry < CURRENT_DATE")
-    long countAssetsWithExpiredWarranty();
+    @Query("SELECT COUNT(a) FROM Asset a WHERE a.warrantyExpiry IS NOT NULL AND a.warrantyExpiry < :currentDate")
+    long countAssetsWithExpiredWarranty(@Param("currentDate") java.time.LocalDate currentDate);
     
     /**
      * Find assets by assigned user

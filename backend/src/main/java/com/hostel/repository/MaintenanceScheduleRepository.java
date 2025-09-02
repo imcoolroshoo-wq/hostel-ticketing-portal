@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
     /**
      * Find maintenance schedules by asset ID ordered by scheduled date descending
      */
-    List<MaintenanceSchedule> findByAssetIdOrderByScheduledDateDesc(UUID assetId);
+    List<MaintenanceSchedule> findByAssetIdOrderByNextDueDateDesc(UUID assetId);
     
     /**
      * Find maintenance schedules by asset ID
@@ -29,21 +30,21 @@ public interface MaintenanceScheduleRepository extends JpaRepository<Maintenance
     /**
      * Find overdue maintenance schedules
      */
-    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE ms.nextDueDate < CURRENT_TIMESTAMP AND ms.status != 'COMPLETED'")
-    List<MaintenanceSchedule> findOverdueMaintenanceSchedules();
+    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE ms.nextDueDate < :now AND ms.status != 'COMPLETED'")
+    List<MaintenanceSchedule> findOverdueMaintenanceSchedules(@Param("now") LocalDateTime now);
     
     /**
      * Find maintenance schedules due today
      */
-    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE DATE(ms.nextDueDate) = CURRENT_DATE AND ms.status != 'COMPLETED'")
-    List<MaintenanceSchedule> findMaintenanceSchedulesDueToday();
+    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE DATE(ms.nextDueDate) = :today AND ms.status != 'COMPLETED'")
+    List<MaintenanceSchedule> findMaintenanceSchedulesDueToday(@Param("today") java.time.LocalDate today);
     
     /**
      * Find maintenance schedules due within date range
      */
-    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE DATE(ms.nextDueDate) BETWEEN :startDate AND :endDate AND ms.status != 'COMPLETED'")
-    List<MaintenanceSchedule> findMaintenanceSchedulesDueBetween(@Param("startDate") LocalDate startDate, 
-                                                                @Param("endDate") LocalDate endDate);
+    @Query("SELECT ms FROM MaintenanceSchedule ms WHERE ms.nextDueDate BETWEEN :startDate AND :endDate AND ms.status != 'COMPLETED'")
+    List<MaintenanceSchedule> findMaintenanceSchedulesDueBetween(@Param("startDate") LocalDateTime startDate, 
+                                                                @Param("endDate") LocalDateTime endDate);
     
     /**
      * Find completed maintenance schedules

@@ -103,41 +103,23 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     /**
      * Find notifications that need retry (for failed external notifications)
      */
-    @Query("SELECT n FROM Notification n WHERE n.type IN ('EMAIL', 'SMS') AND n.createdAt >= :recentDate ORDER BY n.createdAt ASC")
-    List<Notification> findNotificationsForRetry(@Param("recentDate") LocalDateTime recentDate);
+    List<Notification> findByTypeInAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(List<NotificationType> types, LocalDateTime recentDate);
     
     /**
      * Find high priority unread notifications
      */
-    @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND " +
-           "n.type IN ('EMERGENCY', 'SLA_BREACH', 'ESCALATION') ORDER BY n.createdAt DESC")
-    List<Notification> findHighPriorityUnreadNotifications(@Param("userId") UUID userId);
+    List<Notification> findByUserIdAndIsReadFalseAndTypeInOrderByCreatedAtDesc(UUID userId, List<NotificationType> types);
     
     /**
      * Find notifications by multiple types
      */
-    @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.type IN :types ORDER BY n.createdAt DESC")
-    List<Notification> findByUserIdAndTypeIn(@Param("userId") UUID userId, @Param("types") List<NotificationType> types);
+    List<Notification> findByUserIdAndTypeInOrderByCreatedAtDesc(UUID userId, List<NotificationType> types);
     
     /**
-     * Search notifications by content
+     * Search notifications by content - using method name approach
      */
-    @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND " +
-           "(LOWER(n.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(n.message) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY n.createdAt DESC")
-    List<Notification> searchNotifications(@Param("userId") UUID userId, @Param("search") String search);
+    List<Notification> findByUserIdAndTitleContainingIgnoreCaseOrMessageContainingIgnoreCaseOrderByCreatedAtDesc(UUID userId, String titleSearch, String messageSearch);
     
-    /**
-     * Get notification statistics for user
-     */
-    @Query("SELECT n.type as type, COUNT(n) as count FROM Notification n WHERE n.userId = :userId GROUP BY n.type")
-    List<Object[]> getNotificationStatsByUser(@Param("userId") UUID userId);
-    
-    /**
-     * Get notification statistics by date range
-     */
-    @Query("SELECT DATE(n.createdAt) as date, COUNT(n) as count FROM Notification n " +
-           "WHERE n.createdAt BETWEEN :startDate AND :endDate GROUP BY DATE(n.createdAt) ORDER BY DATE(n.createdAt)")
-    List<Object[]> getNotificationStatsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    // Note: Complex statistics queries temporarily removed to resolve startup issues
+    // These can be re-implemented using native queries or service-level aggregation if needed
 }

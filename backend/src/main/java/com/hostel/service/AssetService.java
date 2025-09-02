@@ -289,7 +289,7 @@ public class AssetService {
      * Get maintenance schedules for asset
      */
     public List<MaintenanceSchedule> getMaintenanceSchedules(UUID assetId) {
-        return maintenanceScheduleRepository.findByAssetIdOrderByScheduledDateDesc(assetId);
+        return maintenanceScheduleRepository.findByAssetIdOrderByNextDueDateDesc(assetId);
     }
 
     /**
@@ -336,7 +336,7 @@ public class AssetService {
         stats.put("maintenanceRequired", maintenanceRequired);
         
         // Assets with expired warranty
-        long expiredWarranty = assetRepository.countAssetsWithExpiredWarranty();
+        long expiredWarranty = assetRepository.countAssetsWithExpiredWarranty(java.time.LocalDate.now());
         stats.put("expiredWarranty", expiredWarranty);
         
         // Assigned vs unassigned
@@ -366,6 +366,6 @@ public class AssetService {
      * Get assets with expired warranty
      */
     public List<Asset> getAssetsWithExpiredWarranty() {
-        return assetRepository.findAssetsWithExpiredWarranty();
+        return assetRepository.findAssetsWithExpiredWarranty(java.time.LocalDate.now());
     }
 }

@@ -64,7 +64,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     int updateUserStatus(@Param("userId") UUID userId, @Param("isActive") Boolean isActive, @Param("updatedAt") java.time.LocalDateTime updatedAt);
     
     // Additional missing methods
-    List<User> findByIsActiveTrue(boolean isActive);
+    List<User> findByIsActiveTrue();
     
     List<User> findByStaffVerticalInAndIsActiveTrue(List<StaffVertical> staffVerticals);
 } 

@@ -61,7 +61,7 @@ public class NotificationService {
      */
     public void sendSystemNotification(String title, String message) {
         try {
-            List<User> allUsers = userRepository.findByIsActiveTrue(true);
+            List<User> allUsers = userRepository.findByIsActiveTrue();
             enhancedNotificationService.sendSystemNotification(title, message, allUsers);
         } catch (Exception e) {
             System.err.println("Failed to send system notification: " + e.getMessage());
